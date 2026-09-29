@@ -6,6 +6,7 @@
 
 frappe.ui.form.on("Sales Invoice", {
 	refresh(frm) {
+		aplicar_valores_galeria(frm);
 		if (!galeria.pagos.es_factura_galeria(frm.doc) || frm.doc.docstatus !== 1) return;
 
 		const certificada = frm.doc.bfel_status === "02 Procesada" && frm.doc.bfel_uuid;
@@ -28,15 +29,30 @@ frappe.ui.form.on("Sales Invoice", {
 		);
 	},
 
-	naming_series(frm) {
-		// Una factura nueva con la serie de la galería usa su IVA incluido y su lista de precios.
-		const conf = frappe.boot.galeria;
-		if (!conf || frm.doc.docstatus !== 0 || frm.doc.naming_series !== conf.serie_factura) return;
-		if (conf.plantilla_impuestos && frm.doc.taxes_and_charges !== conf.plantilla_impuestos) {
-			frm.set_value("taxes_and_charges", conf.plantilla_impuestos);
-		}
-		if (conf.lista_precios_publico && !frm.doc.selling_price_list) {
-			frm.set_value("selling_price_list", conf.lista_precios_publico);
-		}
+	naming_series: aplicar_valores_galeria,
+	// ERPNext pone la lista de precios y los impuestos del cliente al elegirlo;
+	// en facturas de la galería se vuelven a poner los de la galería.
+	customer(frm) {
+		setTimeout(() => aplicar_valores_galeria(frm), 800);
 	},
+	selling_price_list: aplicar_valores_galeria,
+	taxes_and_charges: aplicar_valores_galeria,
 });
+
+function es_nueva_de_galeria(frm) {
+	const conf = frappe.boot.galeria;
+	return conf && frm.doc.docstatus === 0 && frm.doc.naming_series === conf.serie_factura;
+}
+
+// Una factura con la serie de la galería usa su IVA incluido y una de sus listas de precios.
+function aplicar_valores_galeria(frm) {
+	if (!es_nueva_de_galeria(frm)) return;
+	const conf = frappe.boot.galeria;
+	const listas = conf.listas_precios || [conf.lista_precios_publico];
+	if (conf.lista_precios_publico && !listas.includes(frm.doc.selling_price_list)) {
+		frm.set_value("selling_price_list", conf.lista_precios_publico);
+	}
+	if (conf.plantilla_impuestos && frm.doc.taxes_and_charges !== conf.plantilla_impuestos) {
+		frm.set_value("taxes_and_charges", conf.plantilla_impuestos);
+	}
+}

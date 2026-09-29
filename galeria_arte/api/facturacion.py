@@ -49,6 +49,9 @@ def extend_bootinfo(bootinfo):
 		"prefijo": _prefijo_serie(conf.serie_factura),
 		"plantilla_impuestos": conf.plantilla_impuestos,
 		"lista_precios_publico": conf.lista_precios_publico,
+		"listas_precios": [
+			l for l in (conf.lista_precios_publico, conf.lista_precios_evento, conf.lista_precios_happy_hour) if l
+		],
 	}
 
 
