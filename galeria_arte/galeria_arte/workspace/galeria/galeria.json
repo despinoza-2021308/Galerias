@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"gal-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Galería</b></span>\",\"col\":12}},{\"id\":\"gal-sc-sala\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Salas\",\"col\":3}},{\"id\":\"gal-sc-conf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configuración\",\"col\":3}},{\"id\":\"gal-spacer-1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"gal-card-conf\",\"type\":\"card\",\"data\":{\"card_name\":\"Configuración\",\"col\":4}}]",
+ "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-facturas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Facturas\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
  "creation": "2026-09-29 16:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -15,8 +15,66 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Facturación y cobros",
+   "link_count": 5,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cobros",
+   "link_count": 0,
+   "link_to": "cobros-galeria",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Facturas",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pagos recibidos",
+   "link_count": 0,
+   "link_to": "Payment Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cierre de Caja",
+   "link_count": 0,
+   "link_to": "Cierre de Caja",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cuentas por cobrar",
+   "link_count": 0,
+   "link_to": "Accounts Receivable",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Configuración",
-   "link_count": 2,
+   "link_count": 4,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -39,9 +97,29 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Listas de precios",
+   "link_count": 0,
+   "link_to": "Price List",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Planes de pago (cuotas)",
+   "link_count": 0,
+   "link_to": "Payment Terms Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-09-29 16:00:00.000000",
+ "modified": "2026-09-29 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Galería",
@@ -55,17 +133,31 @@
  "sequence_id": 50.0,
  "shortcuts": [
   {
+   "color": "Blue",
+   "doc_view": "",
+   "label": "Cobros",
+   "link_to": "cobros-galeria",
+   "type": "Page"
+  },
+  {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Salas",
-   "link_to": "Sala",
+   "label": "Facturas",
+   "link_to": "Sales Invoice",
    "type": "DocType"
   },
   {
    "color": "Grey",
-   "doc_view": "",
-   "label": "Configuración",
-   "link_to": "Configuracion Galeria",
+   "doc_view": "List",
+   "label": "Cierre de Caja",
+   "link_to": "Cierre de Caja",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Salas",
+   "link_to": "Sala",
    "type": "DocType"
   }
  ],

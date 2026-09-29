@@ -26,7 +26,7 @@ required_apps = ["erpnext", "brainfel"]
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/galeria_arte/css/galeria_arte.css"
-# app_include_js = "/assets/galeria_arte/js/galeria_arte.js"
+app_include_js = "/assets/galeria_arte/js/galeria_pagos.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/galeria_arte/css/galeria_arte.css"
@@ -43,7 +43,7 @@ required_apps = ["erpnext", "brainfel"]
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Sales Invoice": "public/js/sales_invoice.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -84,6 +84,7 @@ required_apps = ["erpnext", "brainfel"]
 
 # before_install = "galeria_arte.install.before_install"
 after_install = "galeria_arte.setup.install.after_install"
+after_migrate = "galeria_arte.setup.install.after_migrate"
 
 # Uninstallation
 # ------------
@@ -143,13 +144,14 @@ after_install = "galeria_arte.setup.install.after_install"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Sales Invoice": {
+		"on_submit": "galeria_arte.api.facturacion.on_submit_factura",
+	},
+	"Payment Entry": {
+		"validate": "galeria_arte.api.facturacion.marcar_pago_galeria",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
@@ -253,3 +255,4 @@ after_install = "galeria_arte.setup.install.after_install"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+extend_bootinfo = "galeria_arte.api.facturacion.extend_bootinfo"

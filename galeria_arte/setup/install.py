@@ -5,9 +5,12 @@
 con `bench --site <sitio> execute galeria_arte.setup.install.configurar`."""
 
 import frappe
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.utils.nestedset import get_root_of
 
 SERIE_FACTURA = "GAL-.#####"
+PLANTILLA_IVA = "IVA 12% Incluido"
+CONSUMIDOR_FINAL = "Consumidor Final"
 
 # (nombre, es_grupo, padre); padre None = raíz del árbol de grupos
 GRUPOS_ARTICULO = [
@@ -32,9 +35,43 @@ SALAS = [
 	{"nombre_sala": "Salón Privado", "capacidad": 20, "color": "#B45309"},
 ]
 
+# Planes de pago en cuotas mensuales; la primera cuota vence el día de la factura.
+PLANES_CUOTAS = [3, 6, 12]
+
+AREAS = ["Arte", "Eventos", "Cafetería"]
+
+CAMPOS_PERSONALIZADOS = {
+	"Sales Invoice": [
+		{
+			"fieldname": "galeria_area",
+			"label": "Área de la galería",
+			"fieldtype": "Select",
+			"options": "\n" + "\n".join(AREAS),
+			"insert_after": "customer_name",
+			"in_standard_filter": 1,
+			"allow_on_submit": 0,
+			"translatable": 0,
+		},
+	],
+	"Payment Entry": [
+		{
+			"fieldname": "galeria_pago",
+			"label": "Pago de la galería",
+			"fieldtype": "Check",
+			"insert_after": "mode_of_payment",
+			"read_only": 1,
+			"description": "Se marca solo cuando el pago corresponde a una factura o anticipo de la galería.",
+		},
+	],
+}
+
 
 def after_install():
 	configurar()
+
+
+def after_migrate():
+	crear_campos_personalizados()
 
 
 def configurar():
@@ -43,12 +80,19 @@ def configurar():
 		frappe.throw("No hay ninguna empresa creada; cree una antes de configurar la galería.")
 	currency = frappe.db.get_value("Company", company, "default_currency")
 
+	crear_campos_personalizados()
 	crear_grupos_articulo()
 	listas = crear_listas_precios(currency)
 	agregar_serie_factura()
+	plantilla = crear_plantilla_iva(company)
+	crear_planes_cuotas()
 	crear_salas()
-	configurar_galeria(company, listas)
+	configurar_galeria(company, listas, plantilla)
 	frappe.db.commit()
+
+
+def crear_campos_personalizados():
+	create_custom_fields(CAMPOS_PERSONALIZADOS, update=True)
 
 
 def crear_grupos_articulo():
@@ -100,6 +144,78 @@ def agregar_serie_factura():
 	frappe.clear_cache(doctype="Sales Invoice")
 
 
+def crear_plantilla_iva(company):
+	"""Plantilla propia de la galería: precios al público con IVA incluido.
+	No modifica la plantilla existente de la empresa."""
+	abbr = frappe.db.get_value("Company", company, "abbr")
+	nombre = f"{PLANTILLA_IVA} - {abbr}"
+	if frappe.db.exists("Sales Taxes and Charges Template", nombre):
+		return nombre
+	cuenta_iva = frappe.db.get_value(
+		"Sales Taxes and Charges",
+		{"parenttype": "Sales Taxes and Charges Template", "rate": 12, "account_head": ["like", "%IVA%"]},
+		"account_head",
+	) or frappe.db.get_value("Account", {"company": company, "account_type": "Tax", "is_group": 0}, "name")
+	if not cuenta_iva:
+		frappe.throw(f"No se encontró la cuenta de IVA de {company}.")
+	frappe.get_doc(
+		{
+			"doctype": "Sales Taxes and Charges Template",
+			"title": PLANTILLA_IVA,
+			"company": company,
+			"taxes": [
+				{
+					"charge_type": "On Net Total",
+					"account_head": cuenta_iva,
+					"description": "IVA 12%",
+					"rate": 12,
+					"included_in_print_rate": 1,
+				}
+			],
+		}
+	).insert(ignore_permissions=True)
+	return nombre
+
+
+def crear_planes_cuotas():
+	for n in range(1, max(PLANES_CUOTAS) + 1):
+		nombre = f"Cuota {n}"
+		if not frappe.db.exists("Payment Term", nombre):
+			frappe.get_doc(
+				{
+					"doctype": "Payment Term",
+					"payment_term_name": nombre,
+					"due_date_based_on": "Day(s) after invoice date",
+				}
+			).insert(ignore_permissions=True)
+
+	for cuotas in PLANES_CUOTAS:
+		nombre = f"Galería {cuotas} cuotas"
+		if frappe.db.exists("Payment Terms Template", nombre):
+			continue
+		# Porciones con 2 decimales que suman exactamente 100.
+		base = round(100 / cuotas, 2)
+		porciones = [base] * cuotas
+		porciones[0] = round(100 - base * (cuotas - 1), 2)
+		frappe.get_doc(
+			{
+				"doctype": "Payment Terms Template",
+				"template_name": nombre,
+				"allocate_payment_based_on_payment_terms": 1,
+				"terms": [
+					{
+						"payment_term": f"Cuota {i + 1}",
+						"description": f"Cuota {i + 1} de {cuotas}",
+						"invoice_portion": porcion,
+						"due_date_based_on": "Day(s) after invoice date",
+						"credit_days": 30 * i,
+					}
+					for i, porcion in enumerate(porciones)
+				],
+			}
+		).insert(ignore_permissions=True)
+
+
 def crear_salas():
 	for sala in SALAS:
 		if frappe.db.exists("Sala", sala["nombre_sala"]):
@@ -107,10 +223,13 @@ def crear_salas():
 		frappe.get_doc({"doctype": "Sala", "activa": 1, **sala}).insert(ignore_permissions=True)
 
 
-def configurar_galeria(company, listas):
+def configurar_galeria(company, listas, plantilla):
 	conf = frappe.get_single("Configuracion Galeria")
 	conf.company = conf.company or company
 	conf.serie_factura = conf.serie_factura or SERIE_FACTURA
+	conf.plantilla_impuestos = conf.plantilla_impuestos or plantilla
+	if not conf.cliente_consumidor_final and frappe.db.exists("Customer", CONSUMIDOR_FINAL):
+		conf.cliente_consumidor_final = CONSUMIDOR_FINAL
 	for campo, lista in listas.items():
 		if not conf.get(campo):
 			conf.set(campo, lista)

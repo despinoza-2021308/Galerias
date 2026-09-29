@@ -9,6 +9,10 @@
   "serie_factura",
   "column_break_general",
   "certificar_fel_automaticamente",
+  "section_facturacion",
+  "cliente_consumidor_final",
+  "column_break_facturacion",
+  "plantilla_impuestos",
   "section_precios",
   "lista_precios_publico",
   "lista_precios_evento",
@@ -48,6 +52,29 @@
    "fieldname": "certificar_fel_automaticamente",
    "fieldtype": "Check",
    "label": "Certificar FEL automáticamente"
+  },
+  {
+   "fieldname": "section_facturacion",
+   "fieldtype": "Section Break",
+   "label": "Facturación"
+  },
+  {
+   "fieldname": "cliente_consumidor_final",
+   "fieldtype": "Link",
+   "label": "Cliente Consumidor Final",
+   "options": "Customer",
+   "description": "Cliente por defecto para ventas rápidas sin NIT."
+  },
+  {
+   "fieldname": "column_break_facturacion",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "plantilla_impuestos",
+   "fieldtype": "Link",
+   "label": "Plantilla de impuestos",
+   "options": "Sales Taxes and Charges Template",
+   "description": "IVA 12% incluido en el precio."
   },
   {
    "fieldname": "section_precios",
@@ -92,7 +119,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-09-29 16:00:00.000000",
+ "modified": "2026-09-29 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Configuracion Galeria",

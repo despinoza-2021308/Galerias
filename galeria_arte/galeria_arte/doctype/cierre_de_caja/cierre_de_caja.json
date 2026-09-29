@@ -1,0 +1,172 @@
+{
+ "actions": [],
+ "creation": "2026-09-29 17:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "fecha",
+  "column_break_1",
+  "cajero",
+  "section_resumen",
+  "num_facturas",
+  "total_facturado",
+  "ventas_pendientes",
+  "column_break_2",
+  "total_esperado",
+  "total_contado",
+  "diferencia",
+  "section_pagos",
+  "pagos",
+  "section_notas",
+  "observaciones",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Empresa",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cajero",
+   "fieldtype": "Link",
+   "label": "Cajero",
+   "options": "User",
+   "reqd": 1,
+   "default": "__user",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_resumen",
+   "fieldtype": "Section Break",
+   "label": "Resumen del día"
+  },
+  {
+   "fieldname": "num_facturas",
+   "fieldtype": "Int",
+   "label": "Facturas emitidas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_facturado",
+   "fieldtype": "Currency",
+   "label": "Total facturado",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "ventas_pendientes",
+   "fieldtype": "Currency",
+   "label": "Saldo pendiente de las facturas del día",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "description": "Ventas a crédito o en cuotas que aún no se han cobrado."
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_esperado",
+   "fieldtype": "Currency",
+   "label": "Total cobrado (esperado)",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Todos los pagos recibidos en el día: ventas de contado, abonos y cuotas."
+  },
+  {
+   "fieldname": "total_contado",
+   "fieldtype": "Currency",
+   "label": "Total contado",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "diferencia",
+   "fieldtype": "Currency",
+   "label": "Diferencia",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_pagos",
+   "fieldtype": "Section Break",
+   "label": "Detalle por forma de pago"
+  },
+  {
+   "fieldname": "pagos",
+   "fieldtype": "Table",
+   "label": "Formas de pago",
+   "options": "Cierre de Caja Pago"
+  },
+  {
+   "fieldname": "section_notas",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "observaciones",
+   "fieldtype": "Small Text",
+   "label": "Observaciones"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Cierre de Caja",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-29 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Cierre de Caja",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "CIERRE-.YYYY.-.#####",
+ "naming_rule": "Expression (old style)",
+ "is_submittable": 1,
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "title_field": "cajero"
+}
