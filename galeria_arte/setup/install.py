@@ -47,7 +47,10 @@ CAMPOS_PERSONALIZADOS = {
 			"label": "Área de la galería",
 			"fieldtype": "Select",
 			"options": "\n" + "\n".join(AREAS),
-			"insert_after": "customer_name",
+			# Antes del cliente: Brainfel inserta una sección de exportación oculta
+			# justo después de "customer" que escondería el campo.
+			"insert_after": "bfel_carga_masiva",
+			"depends_on": "eval:(doc.naming_series || '').startsWith('GAL-') || (doc.name || '').startsWith('GAL-')",
 			"in_standard_filter": 1,
 			"allow_on_submit": 0,
 			"translatable": 0,
