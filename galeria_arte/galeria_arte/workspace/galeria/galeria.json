@@ -1,0 +1,74 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"gal-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Galería</b></span>\",\"col\":12}},{\"id\":\"gal-sc-sala\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Salas\",\"col\":3}},{\"id\":\"gal-sc-conf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configuración\",\"col\":3}},{\"id\":\"gal-spacer-1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"gal-card-conf\",\"type\":\"card\",\"data\":{\"card_name\":\"Configuración\",\"col\":4}}]",
+ "creation": "2026-09-29 16:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "image-view",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Galería",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Configuración",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Configuración Galería",
+   "link_count": 0,
+   "link_to": "Configuracion Galeria",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salas",
+   "link_count": 0,
+   "link_to": "Sala",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-09-29 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Galería",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [],
+ "sequence_id": 50.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Salas",
+   "link_to": "Sala",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "",
+   "label": "Configuración",
+   "link_to": "Configuracion Galeria",
+   "type": "DocType"
+  }
+ ],
+ "title": "Galería",
+ "type": "Workspace"
+}

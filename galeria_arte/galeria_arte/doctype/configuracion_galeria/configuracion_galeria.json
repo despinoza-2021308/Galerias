@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "creation": "2026-09-29 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_general",
+  "company",
+  "serie_factura",
+  "column_break_general",
+  "certificar_fel_automaticamente",
+  "section_precios",
+  "lista_precios_publico",
+  "lista_precios_evento",
+  "column_break_precios",
+  "lista_precios_happy_hour",
+  "section_eventos",
+  "dias_vencimiento_reserva"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_general",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Empresa",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "GAL-.#####",
+   "description": "Serie de numeración de las facturas de la galería.",
+   "fieldname": "serie_factura",
+   "fieldtype": "Data",
+   "label": "Serie de facturas",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_general",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Si está activo, cada factura se certifica con Brainfel al validarse. Si no, queda como \"Pendiente de certificar\".",
+   "fieldname": "certificar_fel_automaticamente",
+   "fieldtype": "Check",
+   "label": "Certificar FEL automáticamente"
+  },
+  {
+   "fieldname": "section_precios",
+   "fieldtype": "Section Break",
+   "label": "Listas de precios"
+  },
+  {
+   "fieldname": "lista_precios_publico",
+   "fieldtype": "Link",
+   "label": "Lista de precios Público",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "lista_precios_evento",
+   "fieldtype": "Link",
+   "label": "Lista de precios Evento",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "column_break_precios",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lista_precios_happy_hour",
+   "fieldtype": "Link",
+   "label": "Lista de precios Happy Hour",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "section_eventos",
+   "fieldtype": "Section Break",
+   "label": "Eventos"
+  },
+  {
+   "default": "7",
+   "description": "Días que un alquiler tentativo aparta la fecha antes de vencer si no deja anticipo.",
+   "fieldname": "dias_vencimiento_reserva",
+   "fieldtype": "Int",
+   "label": "Días para vencer reserva tentativa",
+   "non_negative": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-29 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Configuracion Galeria",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
