@@ -330,3 +330,91 @@ def opciones_cobro() -> dict:
 	)
 	planes.sort(key=lambda p: int("".join(c for c in p if c.isdigit()) or 0))
 	return {"modos_pago": modos, "planes_pago": planes}
+
+
+# ---------------------------------------------------------------------------
+# Ventas de la galería
+# ---------------------------------------------------------------------------
+
+ESTADOS_PAGO = {
+	"Pagada": ["Paid"],
+	"Pendiente": ["Unpaid", "Partly Paid", "Overdue", "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted"],
+	"Vencida": ["Overdue", "Overdue and Discounted"],
+}
+
+
+@frappe.whitelist()
+def ventas(
+	desde: str | None = None,
+	hasta: str | None = None,
+	area: str | None = None,
+	cliente: str | None = None,
+	estado_pago: str | None = None,
+	fel: str | None = None,
+) -> dict:
+	"""Facturas de la galería (solo serie de la galería) con totales."""
+	from frappe.utils import get_first_day
+
+	conf = get_config()
+	hoy = getdate(nowdate())
+	desde = getdate(desde) if desde else get_first_day(hoy)
+	hasta = getdate(hasta) if hasta else hoy
+	base = {
+		"company": conf.company,
+		"docstatus": 1,
+		"is_return": 0,
+		"name": ["like", f"{_prefijo_serie(conf.serie_factura)}%"],
+	}
+
+	filtros = dict(base, posting_date=["between", [desde, hasta]])
+	if area:
+		filtros["galeria_area"] = area
+	if cliente:
+		filtros["customer"] = cliente
+	if estado_pago in ESTADOS_PAGO:
+		filtros["status"] = ["in", ESTADOS_PAGO[estado_pago]]
+	if fel == "Certificada":
+		filtros["bfel_uuid"] = ["is", "set"]
+	elif fel == "Pendiente de certificar":
+		filtros["bfel_uuid"] = ["is", "not set"]
+
+	facturas = frappe.get_all(
+		"Sales Invoice",
+		filters=filtros,
+		fields=[
+			"name", "posting_date", "customer", "customer_name", "galeria_area", "grand_total",
+			"outstanding_amount", "status", "payment_terms_template", "bfel_status", "bfel_uuid",
+		],
+		order_by="posting_date desc, name desc",
+		limit_page_length=500,
+	)
+	for f in facturas:
+		f.pagado = flt(f.grand_total - f.outstanding_amount, 2)
+		f.fel = "Certificada" if f.bfel_status == FEL_CERTIFICADA and f.bfel_uuid else "Pendiente de certificar"
+
+	def total(extra):
+		return flt(
+			frappe.get_all("Sales Invoice", filters=dict(base, **extra), fields=["sum(grand_total) as t"])[0].t, 2
+		)
+
+	por_area = {a: 0.0 for a in ("Arte", "Eventos", "Cafetería")}
+	sin_area = 0.0
+	for f in facturas:
+		if f.galeria_area in por_area:
+			por_area[f.galeria_area] = flt(por_area[f.galeria_area] + f.grand_total, 2)
+		else:
+			sin_area = flt(sin_area + f.grand_total, 2)
+
+	return {
+		"desde": desde,
+		"hasta": hasta,
+		"facturas": facturas,
+		"totales": {
+			"hoy": total({"posting_date": hoy}),
+			"mes": total({"posting_date": ["between", [get_first_day(hoy), hoy]]}),
+			"rango": flt(sum(f.grand_total for f in facturas), 2),
+			"pendiente_rango": flt(sum(f.outstanding_amount for f in facturas), 2),
+			"por_area": por_area,
+			"sin_area": sin_area,
+		},
+	}
