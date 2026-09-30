@@ -36,8 +36,9 @@ SALAS = [
 	{"nombre_sala": "Salón Privado", "capacidad": 20, "color": "#B45309"},
 ]
 
-# Planes de pago en cuotas mensuales; la primera cuota vence el día de la factura.
-PLANES_CUOTAS = [3, 6, 12]
+# Planes de pago en cuotas mensuales sobre el saldo después del anticipo; la
+# primera cuota vence un mes después de la factura.
+PLANES_CUOTAS = [3, 6, 9, 12]
 
 AREAS = ["Arte", "Eventos", "Cafetería"]
 
@@ -55,6 +56,16 @@ CAMPOS_PERSONALIZADOS = {
 			"in_standard_filter": 1,
 			"allow_on_submit": 0,
 			"translatable": 0,
+		},
+		{
+			"fieldname": "galeria_reservacion",
+			"label": "Reservación de obra",
+			"fieldtype": "Link",
+			"options": "Reservacion de Obra",
+			"insert_after": "galeria_area",
+			"read_only": 1,
+			"no_copy": 1,
+			"depends_on": "eval:doc.galeria_reservacion",
 		},
 	],
 	"Payment Entry": [
@@ -74,6 +85,15 @@ CAMPOS_PERSONALIZADOS = {
 			"insert_after": "galeria_pago",
 			"read_only": 1,
 			"depends_on": "eval:doc.galeria_obra",
+		},
+		{
+			"fieldname": "galeria_reservacion",
+			"label": "Reservación",
+			"fieldtype": "Link",
+			"options": "Reservacion de Obra",
+			"insert_after": "galeria_obra",
+			"read_only": 1,
+			"depends_on": "eval:doc.galeria_reservacion",
 		},
 	],
 	"Sales Invoice Item": [
@@ -268,7 +288,7 @@ def crear_planes_cuotas():
 						"description": f"Cuota {i + 1} de {cuotas}",
 						"invoice_portion": porcion,
 						"due_date_based_on": "Day(s) after invoice date",
-						"credit_days": 30 * i,
+						"credit_days": 30 * (i + 1),
 					}
 					for i, porcion in enumerate(porciones)
 				],

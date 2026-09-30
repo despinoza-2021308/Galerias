@@ -165,3 +165,53 @@ galeria.pagos.html_pagos = function (e) {
 	}
 	return html + `</tbody></table>`;
 };
+
+// Editor de pagos para diálogos: filas de forma de pago, monto y referencia.
+// Devuelve { leer(), total(), poner(filas) } y avisa cada cambio con on_change.
+galeria.pagos.editor = function ($wrapper, modos, on_change) {
+	const esc = frappe.utils.escape_html;
+	const $filas = $(`<div></div>`).appendTo($wrapper);
+	const $agregar = $(
+		`<button type="button" class="btn btn-xs btn-default" style="margin-top: 4px">+ ${__("Agregar forma de pago")}</button>`
+	).appendTo($wrapper);
+	const fila = (modo, monto) => `
+		<div class="gal-fila-pago" style="display: grid; grid-template-columns: minmax(120px, 1.2fr) minmax(90px, 0.8fr) minmax(100px, 1fr) 38px; gap: 6px; margin-bottom: 6px">
+			<select class="form-control" data-modo>${modos
+				.map((mo) => `<option ${mo === modo ? "selected" : ""}>${esc(mo)}</option>`)
+				.join("")}</select>
+			<input type="number" min="0" step="0.01" inputmode="decimal" class="form-control" data-monto value="${monto || ""}" placeholder="${__("Monto")}">
+			<input type="text" class="form-control" data-ref placeholder="${__("Referencia")}">
+			<button type="button" class="btn btn-default" data-borrar aria-label="${__("Quitar pago")}">×</button>
+		</div>`;
+	const leer = () =>
+		$filas
+			.find(".gal-fila-pago")
+			.map((_, el) => ({
+				modo_pago: $(el).find("[data-modo]").val(),
+				monto: flt($(el).find("[data-monto]").val()),
+				referencia: $(el).find("[data-ref]").val() || null,
+			}))
+			.get()
+			.filter((p) => p.monto > 0);
+	const total = () => flt(leer().reduce((s, p) => s + p.monto, 0), 2);
+	const avisar = () => on_change && on_change();
+	const defecto = modos.includes("Efectivo") ? "Efectivo" : modos[0];
+
+	$agregar.on("click", () => {
+		const usados = leer().map((p) => p.modo_pago);
+		$filas.append(fila(modos.find((mo) => !usados.includes(mo)) || defecto, ""));
+		avisar();
+	});
+	$filas.on("click", "[data-borrar]", (e) => {
+		$(e.currentTarget).closest(".gal-fila-pago").remove();
+		avisar();
+	});
+	$filas.on("input change", "[data-monto], [data-modo]", avisar);
+
+	const poner = (filas) => {
+		$filas.html((filas || []).map((f) => fila(f.modo_pago || defecto, f.monto)).join(""));
+		avisar();
+	};
+	$filas.html(fila(defecto, ""));
+	return { leer, total, poner };
+};

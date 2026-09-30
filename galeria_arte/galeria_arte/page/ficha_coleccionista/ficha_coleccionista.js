@@ -35,6 +35,8 @@ class FichaColeccionista {
 			if (accion === "cobrar") galeria.pagos.registrar(id, recargar);
 			if (accion === "vender") galeria.obras.vender(id, recargar);
 			if (accion === "cancelar") galeria.obras.cancelar_reserva(id, recargar);
+			if (accion === "abonar") galeria.obras.abonar(id, null, recargar);
+			if (accion === "recibo") galeria.obras.imprimir("Reservacion de Obra", id, "Recibo de Reserva");
 			if (accion === "cliente") frappe.set_route("Form", "Customer", id);
 		});
 		this.vacio();
@@ -113,10 +115,13 @@ class FichaColeccionista {
 					.map((o) =>
 						obra(
 							o,
-							`<div class="small ${o.reserva_vencida ? "text-danger" : ""}">${__("Anticipo")} ${m(o.anticipo)} · ${
+							`<div class="small ${o.reserva_vencida ? "text-danger" : ""}">${esc(o.reservacion || "")} · ${__("abonado")} ${m(o.anticipo)} · ${
 								o.reserva_vencida ? __("venció el") : __("hasta el")
 							} ${frappe.datetime.str_to_user(o.fecha_limite_reserva)}</div>`,
-							btn("cancelar", o.name, __("Cancelar reserva")) + btn("vender", o.name, __("Vender"), "btn-primary")
+							btn("vender", o.name, __("Vender"), "btn-primary") +
+								btn("abonar", o.reservacion, __("Abonar")) +
+								btn("cancelar", o.reservacion, __("Cancelar")) +
+								btn("recibo", o.reservacion, __("Recibo"))
 						)
 					)
 					.join("")

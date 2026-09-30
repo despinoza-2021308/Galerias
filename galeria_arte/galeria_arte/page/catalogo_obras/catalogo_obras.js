@@ -52,6 +52,7 @@ class CatalogoObras {
 		};
 		page.set_primary_action(__("Nueva obra"), () => frappe.new_doc("Obra de Arte"), "add");
 		page.set_secondary_action(__("Actualizar"), () => this.cargar(), "refresh");
+		page.add_menu_item(__("Venta de obras"), () => frappe.set_route("venta-obras"));
 		page.add_menu_item(__("Artistas"), () => frappe.set_route("List", "Artista"));
 		page.add_menu_item(__("Lista de obras"), () => frappe.set_route("List", "Obra de Arte"));
 
@@ -70,7 +71,7 @@ class CatalogoObras {
 			if (accion === "ver") frappe.set_route("Form", "Obra de Arte", obra);
 			if (accion === "reservar") galeria.obras.reservar(obra, recargar);
 			if (accion === "vender") galeria.obras.vender(obra, recargar);
-			if (accion === "cancelar") galeria.obras.cancelar_reserva(obra, recargar);
+			if (accion === "cancelar") galeria.obras.cancelar_reserva($el.attr("data-reserva"), recargar);
 		});
 
 		this.listo = true;
@@ -125,7 +126,7 @@ class CatalogoObras {
 		this.$grid.html(
 			obras
 				.map((o) => {
-					const medidas = [o.alto_cm, o.ancho_cm, o.profundidad_cm].filter((x) => flt(x) > 0).join(" × ");
+					const medidas = [o.alto_cm, o.ancho_cm].filter((x) => flt(x) > 0).join(" × ");
 					const detalle = [o.tecnica, o.anio || "", medidas ? medidas + " cm" : ""].filter(Boolean).join(" · ");
 					const color = galeria.obras.COLORES_ESTADO[o.estado] || "gray";
 					let nota = "";
@@ -133,7 +134,7 @@ class CatalogoObras {
 						nota = `<div class="cat-obra-nota ${o.reserva_vencida ? "text-danger" : "text-muted"}">
 							${esc(o.reservada_por || "")} · ${
 							o.reserva_vencida ? __("reserva vencida el") : __("hasta el")
-						} ${frappe.datetime.str_to_user(o.fecha_limite_reserva)}</div>`;
+						} ${frappe.datetime.str_to_user(o.fecha_limite_reserva)} · ${__("abonado")} ${m(o.anticipo)}</div>`;
 					} else if (o.estado === "Vendida") {
 						nota = `<div class="cat-obra-nota text-muted">${__("Vendida a")} ${esc(o.cliente || "")}</div>`;
 					}
@@ -141,7 +142,11 @@ class CatalogoObras {
 						`<button class="btn btn-sm ${clase}" data-accion="${accion}" data-obra="${esc(o.name)}">${texto}</button>`;
 					let acciones = b("ver", __("Ver ficha"));
 					if (o.estado === "Disponible") acciones += b("reservar", __("Reservar")) + b("vender", __("Vender"), "btn-primary");
-					if (o.estado === "Reservada") acciones += b("cancelar", __("Cancelar reserva")) + b("vender", __("Vender"), "btn-primary");
+					if (o.estado === "Reservada") {
+						acciones +=
+							`<button class="btn btn-sm btn-default" data-accion="cancelar" data-obra="${esc(o.name)}" data-reserva="${esc(o.reservacion || "")}">${__("Cancelar reserva")}</button>` +
+							b("vender", __("Vender"), "btn-primary");
+					}
 					const apagada = o.estado === "Vendida" || o.estado === "Devuelta al artista";
 					return `
 					<div class="cat-obra ${apagada ? "apagada" : ""}">

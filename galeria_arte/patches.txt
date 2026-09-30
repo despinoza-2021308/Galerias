@@ -5,3 +5,4 @@
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 galeria_arte.patches.quitar_happy_hour
+galeria_arte.patches.cuotas_desde_el_mes_siguiente

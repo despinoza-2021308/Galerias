@@ -1,0 +1,252 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "obra",
+  "titulo_obra",
+  "artista",
+  "precio_obra",
+  "column_break_1",
+  "cliente",
+  "estado",
+  "company",
+  "section_fechas",
+  "fecha",
+  "column_break_2",
+  "fecha_limite",
+  "section_abonos",
+  "abonos",
+  "total_abonado",
+  "column_break_3",
+  "saldo_obra",
+  "section_cierre",
+  "factura",
+  "fecha_cierre",
+  "column_break_4",
+  "motivo_cancelacion",
+  "section_notas",
+  "notas"
+ ],
+ "fields": [
+  {
+   "fieldname": "obra",
+   "fieldtype": "Link",
+   "label": "Obra",
+   "options": "Obra de Arte",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "titulo_obra",
+   "fieldtype": "Data",
+   "label": "Título",
+   "fetch_from": "obra.titulo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "artista",
+   "fieldtype": "Link",
+   "label": "Artista",
+   "options": "Artista",
+   "fetch_from": "obra.artista",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "precio_obra",
+   "fieldtype": "Currency",
+   "label": "Precio de la obra",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cliente",
+   "fieldtype": "Link",
+   "label": "Cliente",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "estado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Activa\nConvertida en venta\nCancelada",
+   "default": "Activa",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Empresa",
+   "options": "Company",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_fechas",
+   "fieldtype": "Section Break",
+   "label": "Fechas"
+  },
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha de reserva",
+   "default": "Today",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fecha_limite",
+   "fieldtype": "Date",
+   "label": "Reservada hasta",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Al pasar esta fecha el sistema avisa; la obra no se libera sola."
+  },
+  {
+   "fieldname": "section_abonos",
+   "fieldtype": "Section Break",
+   "label": "Anticipo y abonos"
+  },
+  {
+   "fieldname": "abonos",
+   "fieldtype": "Table",
+   "label": "Abonos",
+   "options": "Reservacion de Obra Abono",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_abonado",
+   "fieldtype": "Currency",
+   "label": "Total abonado",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "saldo_obra",
+   "fieldtype": "Currency",
+   "label": "Saldo de la obra",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "description": "Precio de la obra menos lo abonado."
+  },
+  {
+   "fieldname": "section_cierre",
+   "fieldtype": "Section Break",
+   "label": "Cierre",
+   "depends_on": "eval:doc.estado != 'Activa'"
+  },
+  {
+   "fieldname": "factura",
+   "fieldtype": "Link",
+   "label": "Factura",
+   "options": "Sales Invoice",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "fecha_cierre",
+   "fieldtype": "Date",
+   "label": "Fecha de cierre",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "motivo_cancelacion",
+   "fieldtype": "Small Text",
+   "label": "Motivo de cancelación",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_notas",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notas",
+   "fieldtype": "Small Text",
+   "label": "Notas"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Reservacion de Obra",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "RES-.####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "titulo_obra",
+ "search_fields": "titulo_obra,cliente,estado",
+ "permissions": [
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "track_changes": 1,
+ "in_create": 1
+}

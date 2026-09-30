@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "fecha",
+  "modo_pago",
+  "monto",
+  "referencia",
+  "pago"
+ ],
+ "fields": [
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "modo_pago",
+   "fieldtype": "Link",
+   "label": "Forma de pago",
+   "options": "Mode of Payment",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "monto",
+   "fieldtype": "Currency",
+   "label": "Monto",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "referencia",
+   "fieldtype": "Data",
+   "label": "Referencia",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "pago",
+   "fieldtype": "Link",
+   "label": "Pago",
+   "options": "Payment Entry",
+   "in_list_view": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Reservacion de Obra Abono",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "permissions": []
+}

@@ -31,7 +31,9 @@ def _filas_de_obras(doc):
 		for o in frappe.get_all(
 			"Obra de Arte",
 			filters={"articulo": ["in", codigos]},
-			fields=["name", "articulo", "titulo", "estado", "reservada_por", "factura", "monto_artista"],
+			fields=[
+				"name", "articulo", "titulo", "estado", "reservada_por", "reservacion", "factura", "monto_artista",
+			],
 		)
 	}
 	return [(r, obras[r.item_code]) for r in doc.items if r.item_code in obras]
@@ -56,6 +58,8 @@ def validar_factura(doc, method=None):
 		if obra.estado == RESERVADA and obra.reservada_por != doc.customer:
 			frappe.throw(_("La obra {0} está reservada por {1}.").format(obra.titulo, obra.reservada_por))
 		row.galeria_obra = obra.name
+		if obra.estado == RESERVADA and obra.reservacion and not doc.get("galeria_reservacion"):
+			doc.galeria_reservacion = obra.reservacion
 		# El monto del artista se congela en la factura. Si la venta no lo trae
 		# explícito (factura hecha a mano), se toma el de la ficha de la obra.
 		if not doc.flags.galeria_montos_explicitos and not flt(row.get("galeria_monto_artista")):
@@ -79,25 +83,41 @@ def al_validar_factura(doc, method=None):
 				"monto_artista_venta": row.galeria_monto_artista,
 			},
 		)
+		# La reserva de la obra queda convertida en venta (con su historial).
+		if obra.reservacion and frappe.db.get_value("Reservacion de Obra", obra.reservacion, "estado") == "Activa":
+			frappe.db.set_value(
+				"Reservacion de Obra",
+				obra.reservacion,
+				{"estado": "Convertida en venta", "factura": doc.name, "fecha_cierre": doc.posting_date},
+			)
 
 
 def al_anular_factura(doc, method=None):
-	"""Sales Invoice on_cancel: la obra vuelve a Reservada o Disponible."""
-	for obra in frappe.get_all(
-		"Obra de Arte", filters={"factura": doc.name}, fields=["name", "reservada_por"]
-	):
-		frappe.db.set_value(
-			"Obra de Arte",
-			obra.name,
-			{
-				"estado": RESERVADA if obra.reservada_por else DISPONIBLE,
-				"cliente": None,
-				"factura": None,
-				"fecha_venta": None,
-				"precio_vendido": 0,
-				"monto_artista_venta": 0,
-			},
+	"""Sales Invoice on_cancel: la obra vuelve a Reservada (si venía de una
+	reserva, que se reactiva) o a Disponible."""
+	for obra in frappe.get_all("Obra de Arte", filters={"factura": doc.name}, fields=["name", "reservacion"]):
+		reactivar = bool(
+			obra.reservacion
+			and frappe.db.get_value("Reservacion de Obra", obra.reservacion, ["estado", "factura"])
+			== ("Convertida en venta", doc.name)
 		)
+		if reactivar:
+			frappe.db.set_value(
+				"Reservacion de Obra",
+				obra.reservacion,
+				{"estado": "Activa", "factura": None, "fecha_cierre": None},
+			)
+		valores = {
+			"estado": RESERVADA if reactivar else DISPONIBLE,
+			"cliente": None,
+			"factura": None,
+			"fecha_venta": None,
+			"precio_vendido": 0,
+			"monto_artista_venta": 0,
+		}
+		if not reactivar:
+			valores.update({"reservacion": None, "reservada_por": None, "fecha_limite_reserva": None, "anticipo": 0})
+		frappe.db.set_value("Obra de Arte", obra.name, valores)
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +156,7 @@ def catalogo(
 		or_filters=or_filtros,
 		fields=[
 			"name", "titulo", "artista", "tecnica", "anio", "estado", "imagen", "precio_venta",
-			"alto_cm", "ancho_cm", "profundidad_cm", "reservada_por", "fecha_limite_reserva", "cliente",
+			"alto_cm", "ancho_cm", "reservacion", "reservada_por", "fecha_limite_reserva", "anticipo", "cliente",
 		],
 		order_by="titulo asc",
 		limit_page_length=500,
@@ -204,12 +224,19 @@ def ficha_coleccionista(cliente: str) -> dict:
 	reservadas = frappe.get_all(
 		"Obra de Arte",
 		filters={"reservada_por": cliente, "estado": RESERVADA},
-		fields=[*campos_obra, "anticipo", "fecha_limite_reserva"],
+		fields=[*campos_obra, "anticipo", "fecha_limite_reserva", "reservacion"],
 		order_by="fecha_limite_reserva asc",
 	)
 	hoy = getdate(nowdate())
 	for o in reservadas:
 		o.reserva_vencida = bool(o.fecha_limite_reserva and getdate(o.fecha_limite_reserva) < hoy)
+	historial = frappe.get_all(
+		"Reservacion de Obra",
+		filters={"cliente": cliente},
+		fields=["name", "obra", "titulo_obra", "estado", "fecha", "fecha_limite", "total_abonado", "factura"],
+		order_by="creation desc",
+		limit_page_length=50,
+	)
 
 	facturas = frappe.get_all(
 		"Sales Invoice",
@@ -249,6 +276,7 @@ def ficha_coleccionista(cliente: str) -> dict:
 		"cliente": c,
 		"obras_compradas": compradas,
 		"obras_reservadas": reservadas,
+		"reservaciones": historial,
 		"facturas": facturas,
 		"totales": {
 			"comprado": flt(sum(f.grand_total for f in facturas), 2),
@@ -266,28 +294,6 @@ def ficha_coleccionista(cliente: str) -> dict:
 
 
 @frappe.whitelist()
-def reservar(obra: str, cliente: str, anticipo: float, modo_pago: str, fecha_limite: str, referencia: str | None = None):
-	return frappe.get_doc("Obra de Arte", obra).reservar(cliente, anticipo, modo_pago, fecha_limite, referencia)
-
-
-@frappe.whitelist()
-def cancelar_reserva(obra: str):
-	return frappe.get_doc("Obra de Arte", obra).cancelar_reserva()
-
-
-@frappe.whitelist()
-def vender(
-	obra: str,
-	cliente: str,
-	precio: float | None = None,
-	monto_artista: float | None = None,
-	plan_pagos: str | None = None,
-	pagos=None,
-):
-	return frappe.get_doc("Obra de Arte", obra).vender(cliente, precio, monto_artista, plan_pagos, pagos)
-
-
-@frappe.whitelist()
 def devolver_al_artista(obra: str):
 	return frappe.get_doc("Obra de Arte", obra).devolver_al_artista()
 
@@ -295,31 +301,3 @@ def devolver_al_artista(obra: str):
 @frappe.whitelist()
 def reingresar(obra: str):
 	return frappe.get_doc("Obra de Arte", obra).reingresar()
-
-
-@frappe.whitelist()
-def datos_venta(obra: str) -> dict:
-	"""Lo que necesita el diálogo de venta: la obra, su anticipo disponible y las opciones de cobro."""
-	from galeria_arte.api.facturacion import opciones_cobro
-
-	o = frappe.get_doc("Obra de Arte", obra)
-	o.check_permission("read")
-	anticipo = 0.0
-	if o.estado == RESERVADA and o.pago_anticipo:
-		pe = frappe.db.get_value("Payment Entry", o.pago_anticipo, ["docstatus", "unallocated_amount"], as_dict=True)
-		if pe and pe.docstatus == 1:
-			anticipo = flt(pe.unallocated_amount)
-	return {
-		"obra": {
-			"name": o.name,
-			"titulo": o.titulo,
-			"artista": o.artista,
-			"estado": o.estado,
-			"precio_venta": o.precio_venta,
-			"monto_artista": o.monto_artista,
-			"reservada_por": o.reservada_por,
-			"fecha_limite_reserva": o.fecha_limite_reserva,
-		},
-		"anticipo_disponible": anticipo,
-		**opciones_cobro(),
-	}

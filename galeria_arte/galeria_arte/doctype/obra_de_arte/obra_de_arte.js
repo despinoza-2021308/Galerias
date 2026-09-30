@@ -24,8 +24,23 @@ frappe.ui.form.on("Obra de Arte", {
 			);
 		}
 		if (estado === "Reservada") {
+			const res = frm.doc.reservacion;
 			frm.add_custom_button(__("Vender"), () => galeria.obras.vender(frm.doc.name, recargar)).addClass("btn-primary");
-			frm.add_custom_button(__("Cancelar reserva"), () => galeria.obras.cancelar_reserva(frm.doc.name, recargar));
+			if (res) {
+				const saldo = flt(frm.doc.precio_venta) - flt(frm.doc.anticipo);
+				frm.add_custom_button(__("Abonar"), () => galeria.obras.abonar(res, saldo, recargar), __("Reserva"));
+				frm.add_custom_button(
+					__("Extender fecha"),
+					() => galeria.obras.extender(res, frm.doc.fecha_limite_reserva, recargar),
+					__("Reserva")
+				);
+				frm.add_custom_button(
+					__("Imprimir recibo"),
+					() => galeria.obras.imprimir("Reservacion de Obra", res, "Recibo de Reserva"),
+					__("Reserva")
+				);
+				frm.add_custom_button(__("Cancelar reserva"), () => galeria.obras.cancelar_reserva(res, recargar), __("Reserva"));
+			}
 		}
 		if (estado === "Vendida" && frm.doc.factura) {
 			frm.add_custom_button(__("Estado de cuenta"), () => galeria.pagos.estado_cuenta(frm.doc.factura));
@@ -40,6 +55,7 @@ frappe.ui.form.on("Obra de Arte", {
 		if (estado !== "Vendida") {
 			frm.add_custom_button(__("Clientes interesados"), () => clientes_interesados(frm), __("Más"));
 		}
+		frm.add_custom_button(__("Venta de obras"), () => frappe.set_route("venta-obras"), __("Más"));
 		frm.add_custom_button(__("Ver en el catálogo"), () => frappe.set_route("catalogo-obras"), __("Más"));
 
 		// Vendida: el precio y el monto del artista quedaron congelados en la factura.
@@ -62,12 +78,12 @@ function mostrar_aviso(frm) {
 		const vencida = d.fecha_limite_reserva && d.fecha_limite_reserva < frappe.datetime.get_today();
 		frm.set_intro(
 			vencida
-				? __("La reserva de {0} venció el {1} (anticipo {2}). Decida si se vende o se cancela la reserva.", [
+				? __("La reserva de {0} venció el {1} (abonado {2}). Decida si se vende, se extiende o se cancela.", [
 						d.reservada_por,
 						frappe.datetime.str_to_user(d.fecha_limite_reserva),
 						m(d.anticipo),
 				  ])
-				: __("Reservada por {0} hasta el {1} (anticipo {2}).", [
+				: __("Reservada por {0} hasta el {1} (abonado {2}).", [
 						d.reservada_por,
 						frappe.datetime.str_to_user(d.fecha_limite_reserva),
 						m(d.anticipo),

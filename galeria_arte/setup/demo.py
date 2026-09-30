@@ -75,16 +75,16 @@ ARTISTAS = [
 	("Lucía Ferrante", "Italia", "Fotógrafa y acuarelista radicada en Antigua Guatemala."),
 ]
 
-# (título, artista, técnica, año, alto, ancho, profundidad, precio con IVA, monto para el artista)
+# (título, artista, técnica, año, alto, ancho, precio con IVA, monto para el artista)
 OBRAS = [
-	("Amanecer en Atitlán", "Elena Marroquín", "Óleo sobre lienzo", 2024, 90, 120, 0, 11200, 6000),
-	("Volcán de Agua", "Elena Marroquín", "Óleo sobre lienzo", 2023, 70, 100, 0, 8960, 5000),
-	("Mercado de Chichicastenango", "Elena Marroquín", "Acrílico sobre lienzo", 2025, 60, 80, 0, 6720, 3800),
-	("Guardián de jade", "Tomás Ixcot", "Escultura en piedra", 2022, 45, 20, 20, 15680, 9000),
-	("Raíces", "Tomás Ixcot", "Talla en madera", 2024, 80, 30, 25, 13440, 7500),
-	("Tejido I", "Tomás Ixcot", "Xilografía", 2025, 50, 40, 0, 2800, 1500),
-	("Calle del Arco", "Lucía Ferrante", "Acuarela", 2025, 40, 30, 0, 3360, 1800),
-	("Lluvia en el parque", "Lucía Ferrante", "Fotografía en papel de algodón", 2024, 60, 90, 0, 4480, 2400),
+	("Amanecer en Atitlán", "Elena Marroquín", "Óleo sobre lienzo", 2024, 90, 120, 11200, 6000),
+	("Volcán de Agua", "Elena Marroquín", "Óleo sobre lienzo", 2023, 70, 100, 8960, 5000),
+	("Mercado de Chichicastenango", "Elena Marroquín", "Acrílico sobre lienzo", 2025, 60, 80, 6720, 3800),
+	("Guardián de jade", "Tomás Ixcot", "Escultura en piedra", 2022, 45, 20, 15680, 9000),
+	("Raíces", "Tomás Ixcot", "Talla en madera", 2024, 80, 30, 13440, 7500),
+	("Tejido I", "Tomás Ixcot", "Xilografía", 2025, 50, 40, 2800, 1500),
+	("Calle del Arco", "Lucía Ferrante", "Acuarela", 2025, 40, 30, 3360, 1800),
+	("Lluvia en el parque", "Lucía Ferrante", "Fotografía en papel de algodón", 2024, 60, 90, 4480, 2400),
 ]
 
 OBRA_PRUEBA = "OBRA-PRUEBA"
@@ -102,7 +102,7 @@ def cargar_arte():
 		).insert(ignore_permissions=True)
 		artistas += 1
 	obras = 0
-	for titulo, artista, tecnica, anio, alto, ancho, prof, precio, monto in OBRAS:
+	for titulo, artista, tecnica, anio, alto, ancho, precio, monto in OBRAS:
 		if frappe.db.exists("Obra de Arte", {"titulo": titulo, "artista": artista}):
 			continue
 		frappe.get_doc(
@@ -114,7 +114,6 @@ def cargar_arte():
 				"anio": anio,
 				"alto_cm": alto,
 				"ancho_cm": ancho,
-				"profundidad_cm": prof,
 				"precio_venta": precio,
 				"monto_artista": monto,
 			}

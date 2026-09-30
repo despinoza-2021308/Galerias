@@ -16,8 +16,6 @@
   "alto_cm",
   "column_break_2",
   "ancho_cm",
-  "column_break_3",
-  "profundidad_cm",
   "section_precio",
   "precio_venta",
   "monto_artista",
@@ -30,11 +28,11 @@
   "section_fotos",
   "fotos",
   "section_reserva",
+  "reservacion",
   "reservada_por",
   "fecha_limite_reserva",
   "column_break_5",
   "anticipo",
-  "pago_anticipo",
   "section_venta",
   "cliente",
   "factura",
@@ -121,15 +119,6 @@
    "label": "Ancho"
   },
   {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "profundidad_cm",
-   "fieldtype": "Float",
-   "label": "Profundidad"
-  },
-  {
    "fieldname": "section_precio",
    "fieldtype": "Section Break",
    "label": "Precio y consignación"
@@ -202,6 +191,14 @@
    "depends_on": "eval:doc.reservada_por"
   },
   {
+   "fieldname": "reservacion",
+   "fieldtype": "Link",
+   "label": "Reservación",
+   "options": "Reservacion de Obra",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
    "fieldname": "reservada_por",
    "fieldtype": "Link",
    "label": "Reservada por",
@@ -223,16 +220,8 @@
   {
    "fieldname": "anticipo",
    "fieldtype": "Currency",
-   "label": "Anticipo",
+   "label": "Total abonado",
    "options": "Company:company:default_currency",
-   "read_only": 1,
-   "no_copy": 1
-  },
-  {
-   "fieldname": "pago_anticipo",
-   "fieldtype": "Link",
-   "label": "Pago del anticipo",
-   "options": "Payment Entry",
    "read_only": 1,
    "no_copy": 1
   },
@@ -301,8 +290,13 @@
    "no_copy": 1
   }
  ],
- "links": [],
- "modified": "2026-09-30 13:00:00.000000",
+ "links": [
+  {
+   "link_doctype": "Reservacion de Obra",
+   "link_fieldname": "obra"
+  }
+ ],
+ "modified": "2026-09-30 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Obra de Arte",

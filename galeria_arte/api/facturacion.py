@@ -79,6 +79,7 @@ def crear_factura(
 	pagos=None,
 	observaciones: str | None = None,
 	anticipos=None,
+	vence=None,
 ):
 	"""Crea y valida una factura de la galería.
 
@@ -86,6 +87,7 @@ def crear_factura(
 	plan_pagos: Payment Terms Template (cuotas); vacío = contado.
 	pagos: [{modo_pago, monto, referencia?}] que se registran al momento.
 	anticipos: [{pago, monto}] Payment Entry ya recibidos que se aplican a la factura.
+	vence: fecha límite de pago cuando el saldo se paga con abonos libres (sin plan).
 	"""
 	items = _cargar(items) or []
 	if not items:
@@ -106,6 +108,8 @@ def crear_factura(
 	si.remarks = observaciones
 	if plan_pagos:
 		si.payment_terms_template = plan_pagos
+	elif vence:
+		si.due_date = vence
 
 	for row in items:
 		item = {"item_code": row["item_code"], "qty": flt(row.get("qty") or 1)}
