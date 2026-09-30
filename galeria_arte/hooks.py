@@ -1,3 +1,17 @@
+import os
+
+
+def _con_version(ruta: str) -> str:
+	"""nginx sirve /assets con caché de un año: la URL lleva la fecha de
+	modificación del archivo para que el navegador tome la versión nueva."""
+	archivo = os.path.join(os.path.dirname(__file__), "public", ruta)
+	try:
+		version = int(os.path.getmtime(archivo))
+	except OSError:
+		version = 0
+	return f"/assets/galeria_arte/{ruta}?v={version}"
+
+
 app_name = "galeria_arte"
 app_title = "Galeria Arte"
 app_publisher = "despinoza-2021308"
@@ -26,7 +40,7 @@ required_apps = ["erpnext", "brainfel"]
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/galeria_arte/css/galeria_arte.css"
-app_include_js = ["/assets/galeria_arte/js/galeria_pagos.js", "/assets/galeria_arte/js/galeria_obras.js"]
+app_include_js = [_con_version("js/galeria_pagos.js"), _con_version("js/galeria_obras.js")]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/galeria_arte/css/galeria_arte.css"
