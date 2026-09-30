@@ -339,6 +339,18 @@ def facturas_pendientes(cliente: str | None = None, area: str | None = None, ven
 	return facturas
 
 
+def _orden_modo_pago(modo: str):
+	tipo = frappe.db.get_value("Mode of Payment", modo, "type")
+	nombre = modo.lower()
+	if tipo == "Cash":
+		return (0, nombre)
+	if "tarjeta" in nombre or "card" in nombre:
+		return (1, nombre)
+	if "transfer" in nombre:
+		return (2, nombre)
+	return (3, nombre)
+
+
 @frappe.whitelist()
 def opciones_cobro() -> dict:
 	"""Formas de pago con cuenta en la empresa y planes de cuotas de la galería."""
@@ -350,6 +362,8 @@ def opciones_cobro() -> dict:
 		order_by="parent asc",
 	)
 	modos = [m for m in modos if frappe.db.get_value("Mode of Payment", m, "enabled")]
+	# Las más usadas primero: efectivo, tarjeta, transferencia; el resto después.
+	modos.sort(key=_orden_modo_pago)
 	planes = frappe.get_all(
 		"Payment Terms Template", filters={"template_name": ["like", "Galería %"]}, pluck="name"
 	)

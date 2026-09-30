@@ -13,7 +13,7 @@ Reglas:
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, date_diff, flt, get_first_day, getdate, nowdate
+from frappe.utils import add_days, date_diff, flt, formatdate, get_first_day, getdate, nowdate
 
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 from erpnext.accounts.party import get_party_account
@@ -200,7 +200,9 @@ def extender_reservacion(reservacion: str, fecha_limite: str) -> dict:
 	anterior = res.fecha_limite
 	res.fecha_limite = fecha_limite
 	res.save()
-	res.add_comment("Info", _("Reserva extendida del {0} al {1}.").format(anterior, fecha_limite))
+	res.add_comment(
+		"Info", _("Reserva extendida del {0} al {1}.").format(formatdate(anterior), formatdate(fecha_limite))
+	)
 	_sincronizar_obra(res)
 	return {"reservacion": res.name, "fecha_limite": res.fecha_limite}
 
@@ -260,8 +262,8 @@ def datos_venta(obra: str) -> dict:
 def vender(
 	obra: str,
 	cliente: str,
-	precio: float | None = None,
-	monto_artista: float | None = None,
+	precio: str | float | None = None,
+	monto_artista: str | float | None = None,
 	plan_pagos: str | None = None,
 	pagos=None,
 	pagar_antes_de: str | None = None,

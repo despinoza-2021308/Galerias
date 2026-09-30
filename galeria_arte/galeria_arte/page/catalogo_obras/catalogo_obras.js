@@ -140,7 +140,7 @@ class CatalogoObras {
 					}
 					const b = (accion, texto, clase = "btn-default") =>
 						`<button class="btn btn-sm ${clase}" data-accion="${accion}" data-obra="${esc(o.name)}">${texto}</button>`;
-					let acciones = b("ver", __("Ver ficha"));
+					let acciones = b("ver", __("Ver"));
 					if (o.estado === "Disponible") acciones += b("reservar", __("Reservar")) + b("vender", __("Vender"), "btn-primary");
 					if (o.estado === "Reservada") {
 						acciones +=

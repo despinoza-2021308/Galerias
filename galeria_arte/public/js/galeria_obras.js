@@ -363,6 +363,8 @@ galeria.obras.vender = async function (obra, on_done) {
 		}
 		if (gan < 0) html += aviso("danger", __("Con estos montos la galería pierde en esta obra."));
 		d.fields_dict.resumen.$wrapper.html(html);
+		// Sin anticipo o con un pago mayor al precio no se puede facturar.
+		d.get_primary_btn().prop("disabled", c.recibido <= 0 || c.saldo < 0);
 	};
 
 	d.show();

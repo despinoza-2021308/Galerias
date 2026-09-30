@@ -129,8 +129,8 @@ def al_anular_factura(doc, method=None):
 def catalogo(
 	artista: str | None = None,
 	estado: str | None = None,
-	precio_min: float | None = None,
-	precio_max: float | None = None,
+	precio_min: str | float | None = None,
+	precio_max: str | float | None = None,
 	buscar: str | None = None,
 ) -> dict:
 	filtros = []

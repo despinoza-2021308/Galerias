@@ -107,7 +107,8 @@
   {
    "fieldname": "alto_cm",
    "fieldtype": "Float",
-   "label": "Alto"
+   "label": "Alto",
+   "precision": "1"
   },
   {
    "fieldname": "column_break_2",
@@ -116,7 +117,8 @@
   {
    "fieldname": "ancho_cm",
    "fieldtype": "Float",
-   "label": "Ancho"
+   "label": "Ancho",
+   "precision": "1"
   },
   {
    "fieldname": "section_precio",
@@ -296,7 +298,7 @@
    "link_fieldname": "obra"
   }
  ],
- "modified": "2026-09-30 15:00:00.000000",
+ "modified": "2026-09-30 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Obra de Arte",
