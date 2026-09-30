@@ -49,10 +49,13 @@ def extend_bootinfo(bootinfo):
 		"prefijo": _prefijo_serie(conf.serie_factura),
 		"plantilla_impuestos": conf.plantilla_impuestos,
 		"lista_precios_publico": conf.lista_precios_publico,
-		"listas_precios": [
-			l for l in (conf.lista_precios_publico, conf.lista_precios_evento) if l
-		],
+		"listas_precios": _listas_precios(conf),
 	}
+
+
+def _listas_precios(conf) -> list:
+	"""Listas de precios de la galería."""
+	return [l for l in (conf.lista_precios_publico, conf.lista_precios_evento) if l]
 
 
 def _cargar(valor):
@@ -75,12 +78,14 @@ def crear_factura(
 	plan_pagos: str | None = None,
 	pagos=None,
 	observaciones: str | None = None,
+	anticipos=None,
 ):
 	"""Crea y valida una factura de la galería.
 
-	items: [{item_code, qty, rate?}]; sin rate se usa el precio de la lista.
+	items: [{item_code, qty, rate?, galeria_monto_artista?}]; sin rate se usa el precio de la lista.
 	plan_pagos: Payment Terms Template (cuotas); vacío = contado.
 	pagos: [{modo_pago, monto, referencia?}] que se registran al momento.
+	anticipos: [{pago, monto}] Payment Entry ya recibidos que se aplican a la factura.
 	"""
 	items = _cargar(items) or []
 	if not items:
@@ -115,10 +120,26 @@ def crear_factura(
 		if original.get("rate") not in (None, ""):
 			row.price_list_rate = row.rate = flt(original["rate"])
 			row.discount_percentage = 0
+		if original.get("galeria_monto_artista") not in (None, ""):
+			row.galeria_monto_artista = flt(original["galeria_monto_artista"])
+			si.flags.galeria_montos_explicitos = True
 	if si.taxes_and_charges:
 		si.set("taxes", [])
 		si.set_taxes()
 	si.calculate_taxes_and_totals()
+	for a in _cargar(anticipos) or []:
+		if flt(a.get("monto")) <= 0:
+			continue
+		si.append(
+			"advances",
+			{
+				"reference_type": "Payment Entry",
+				"reference_name": a["pago"],
+				"advance_amount": flt(a["monto"]),
+				"allocated_amount": min(flt(a["monto"]), flt(si.grand_total)),
+				"remarks": _("Anticipo aplicado"),
+			},
+		)
 	si.insert()
 	si.submit()
 

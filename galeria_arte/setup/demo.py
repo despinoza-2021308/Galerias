@@ -29,7 +29,6 @@ PRODUCTOS = [
 	("POS-001", "Pastel de Chocolate", "Postres", 35, 38),
 	("POS-002", "Cheesecake de Frutos Rojos", "Postres", 38, 42),
 	("POS-003", "Brownie con Helado", "Postres", 32, 35),
-	("OBRA-PRUEBA", "Obra de prueba - Paisaje al óleo", "Obras de Arte", 11200, 11200),
 ]
 
 
@@ -64,3 +63,72 @@ def cargar_productos():
 			).insert(ignore_permissions=True)
 	frappe.db.commit()
 	print(f"Productos creados: {creados} de {len(PRODUCTOS)}")
+
+
+# ---------------------------------------------------------------------------
+# Arte: artistas y obras de ejemplo (ficticios)
+# ---------------------------------------------------------------------------
+
+ARTISTAS = [
+	("Elena Marroquín", "Guatemala", "Pintora. Paisajes del altiplano en óleo de gran formato."),
+	("Tomás Ixcot", "Guatemala", "Escultor y grabador. Trabaja madera, piedra y xilografía."),
+	("Lucía Ferrante", "Italia", "Fotógrafa y acuarelista radicada en Antigua Guatemala."),
+]
+
+# (título, artista, técnica, año, alto, ancho, profundidad, precio con IVA, monto para el artista)
+OBRAS = [
+	("Amanecer en Atitlán", "Elena Marroquín", "Óleo sobre lienzo", 2024, 90, 120, 0, 11200, 6000),
+	("Volcán de Agua", "Elena Marroquín", "Óleo sobre lienzo", 2023, 70, 100, 0, 8960, 5000),
+	("Mercado de Chichicastenango", "Elena Marroquín", "Acrílico sobre lienzo", 2025, 60, 80, 0, 6720, 3800),
+	("Guardián de jade", "Tomás Ixcot", "Escultura en piedra", 2022, 45, 20, 20, 15680, 9000),
+	("Raíces", "Tomás Ixcot", "Talla en madera", 2024, 80, 30, 25, 13440, 7500),
+	("Tejido I", "Tomás Ixcot", "Xilografía", 2025, 50, 40, 0, 2800, 1500),
+	("Calle del Arco", "Lucía Ferrante", "Acuarela", 2025, 40, 30, 0, 3360, 1800),
+	("Lluvia en el parque", "Lucía Ferrante", "Fotografía en papel de algodón", 2024, 60, 90, 0, 4480, 2400),
+]
+
+OBRA_PRUEBA = "OBRA-PRUEBA"
+
+
+def cargar_arte():
+	"""Artistas y obras de ejemplo. Retira el artículo de prueba anterior si nunca se facturó."""
+	quitar_obra_de_prueba()
+	artistas = 0
+	for nombre, nacionalidad, bio in ARTISTAS:
+		if frappe.db.exists("Artista", nombre):
+			continue
+		frappe.get_doc(
+			{"doctype": "Artista", "nombre": nombre, "nacionalidad": nacionalidad, "biografia": bio, "activo": 1}
+		).insert(ignore_permissions=True)
+		artistas += 1
+	obras = 0
+	for titulo, artista, tecnica, anio, alto, ancho, prof, precio, monto in OBRAS:
+		if frappe.db.exists("Obra de Arte", {"titulo": titulo, "artista": artista}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Obra de Arte",
+				"titulo": titulo,
+				"artista": artista,
+				"tecnica": tecnica,
+				"anio": anio,
+				"alto_cm": alto,
+				"ancho_cm": ancho,
+				"profundidad_cm": prof,
+				"precio_venta": precio,
+				"monto_artista": monto,
+			}
+		).insert(ignore_permissions=True)
+		obras += 1
+	frappe.db.commit()
+	print(f"Artistas creados: {artistas} de {len(ARTISTAS)} · Obras creadas: {obras} de {len(OBRAS)}")
+
+
+def quitar_obra_de_prueba():
+	if not frappe.db.exists("Item", OBRA_PRUEBA):
+		return
+	if frappe.db.exists("Sales Invoice Item", {"item_code": OBRA_PRUEBA}):
+		return  # ya se facturó: se conserva para no romper esa factura
+	for precio in frappe.get_all("Item Price", filters={"item_code": OBRA_PRUEBA}, pluck="name"):
+		frappe.delete_doc("Item Price", precio, force=1, ignore_permissions=True)
+	frappe.delete_doc("Item", OBRA_PRUEBA, force=1, ignore_permissions=True)

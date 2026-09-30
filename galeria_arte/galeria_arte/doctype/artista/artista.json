@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 13:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "nombre",
+  "nacionalidad",
+  "activo",
+  "column_break_1",
+  "foto",
+  "section_contacto",
+  "telefono",
+  "correo",
+  "column_break_2",
+  "redes",
+  "section_bio",
+  "biografia",
+  "section_pago",
+  "banco",
+  "tipo_cuenta",
+  "column_break_3",
+  "numero_cuenta",
+  "nombre_cuenta",
+  "section_erp",
+  "proveedor"
+ ],
+ "fields": [
+  {
+   "fieldname": "nombre",
+   "fieldtype": "Data",
+   "label": "Nombre del artista",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "nacionalidad",
+   "fieldtype": "Data",
+   "label": "Nacionalidad",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "activo",
+   "fieldtype": "Check",
+   "label": "Activo",
+   "default": "1"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "foto",
+   "fieldtype": "Attach Image",
+   "label": "Foto"
+  },
+  {
+   "fieldname": "section_contacto",
+   "fieldtype": "Section Break",
+   "label": "Contacto"
+  },
+  {
+   "fieldname": "telefono",
+   "fieldtype": "Data",
+   "label": "Teléfono",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "correo",
+   "fieldtype": "Data",
+   "label": "Correo",
+   "options": "Email"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "redes",
+   "fieldtype": "Data",
+   "label": "Redes sociales / sitio web"
+  },
+  {
+   "fieldname": "section_bio",
+   "fieldtype": "Section Break",
+   "label": "Biografía"
+  },
+  {
+   "fieldname": "biografia",
+   "fieldtype": "Text Editor",
+   "label": "Biografía"
+  },
+  {
+   "fieldname": "section_pago",
+   "fieldtype": "Section Break",
+   "label": "Datos para pagarle",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "banco",
+   "fieldtype": "Data",
+   "label": "Banco"
+  },
+  {
+   "fieldname": "tipo_cuenta",
+   "fieldtype": "Select",
+   "label": "Tipo de cuenta",
+   "options": "\nMonetaria\nAhorro"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "numero_cuenta",
+   "fieldtype": "Data",
+   "label": "Número de cuenta"
+  },
+  {
+   "fieldname": "nombre_cuenta",
+   "fieldtype": "Data",
+   "label": "Cuenta a nombre de"
+  },
+  {
+   "fieldname": "section_erp",
+   "fieldtype": "Section Break",
+   "label": "Vínculo contable",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "proveedor",
+   "fieldtype": "Link",
+   "label": "Proveedor",
+   "options": "Supplier",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Se crea automáticamente para registrar los pagos al artista."
+  }
+ ],
+ "links": [
+  {
+   "link_doctype": "Obra de Arte",
+   "link_fieldname": "artista"
+  }
+ ],
+ "modified": "2026-09-30 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Artista",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:nombre",
+ "naming_rule": "By fieldname",
+ "allow_rename": 1,
+ "image_field": "foto",
+ "title_field": "nombre",
+ "search_fields": "nacionalidad",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  }
+ ]
+}

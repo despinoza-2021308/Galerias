@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 13:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "imagen",
+  "descripcion"
+ ],
+ "fields": [
+  {
+   "fieldname": "imagen",
+   "fieldtype": "Attach Image",
+   "label": "Foto",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "descripcion",
+   "fieldtype": "Data",
+   "label": "Descripción",
+   "in_list_view": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Obra de Arte Foto",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

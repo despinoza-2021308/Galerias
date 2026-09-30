@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from galeria_arte.api.facturacion import _cargar, crear_factura, get_config, opciones_cobro
+from galeria_arte.api.facturacion import _cargar, _listas_precios, crear_factura, get_config, opciones_cobro
 
 GRUPO_CAFETERIA = "Cafetería"
 AREA = "Cafetería"
@@ -26,10 +26,6 @@ def _categorias() -> list:
 		pluck="name",
 		order_by="lft asc",
 	)
-
-
-def _listas_precios(conf) -> list:
-	return [l for l in (conf.lista_precios_publico, conf.lista_precios_evento) if l]
 
 
 def _precios(lista_precios: str, conf) -> dict:

@@ -1,0 +1,116 @@
+/* Catálogo de obras. Usa las variables de tema de Frappe (claro/oscuro). */
+
+.cat-obras-conteo {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: var(--margin-md);
+}
+
+.cat-obras-chip {
+	border: 1px solid var(--border-color);
+	background: var(--control-bg);
+	color: var(--text-color);
+	border-radius: 999px;
+	padding: 6px 14px;
+	font-size: var(--text-md);
+	cursor: pointer;
+	user-select: none;
+}
+
+.cat-obras-chip.activo {
+	background: var(--primary);
+	border-color: var(--primary);
+	color: #fff;
+}
+
+.cat-obras-chip.alerta:not(.activo) {
+	border-color: var(--red-400, #e24c4c);
+	color: var(--red-600, #c0392b);
+}
+
+.cat-obras-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: var(--margin-md);
+}
+
+.cat-obra {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.cat-obra.apagada .cat-obra-foto {
+	filter: grayscale(0.7);
+	opacity: 0.75;
+}
+
+.cat-obra-foto {
+	position: relative;
+	cursor: pointer;
+}
+
+.cat-obra-estado {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+}
+
+.cat-obra-cuerpo {
+	padding: var(--padding-md);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+}
+
+.cat-obra-titulo {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	color: var(--text-color);
+	cursor: pointer;
+}
+
+.cat-obra-artista {
+	color: var(--text-color);
+}
+
+.cat-obra-detalle {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+.cat-obra-precio {
+	font-size: var(--text-xl);
+	font-weight: 700;
+	color: var(--text-color);
+	margin-top: 6px;
+}
+
+.cat-obra-nota {
+	font-size: var(--text-sm);
+	margin-top: 4px;
+}
+
+.cat-obra-acciones {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: auto;
+	padding-top: var(--padding-sm);
+}
+
+.cat-obra-acciones .btn {
+	flex: 1;
+	min-height: 34px;
+}
+
+.cat-obras-vacio {
+	color: var(--text-muted);
+	text-align: center;
+	padding: var(--padding-xl);
+}

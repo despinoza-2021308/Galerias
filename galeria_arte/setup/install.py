@@ -8,6 +8,8 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.utils.nestedset import get_root_of
 
+from galeria_arte.galeria_arte.doctype.artista.artista import asegurar_grupo_proveedor
+
 SERIE_FACTURA = "GAL-.#####"
 PLANTILLA_IVA = "IVA 12% Incluido"
 CONSUMIDOR_FINAL = "Consumidor Final"
@@ -64,6 +66,61 @@ CAMPOS_PERSONALIZADOS = {
 			"read_only": 1,
 			"description": "Se marca solo cuando el pago corresponde a una factura o anticipo de la galería.",
 		},
+		{
+			"fieldname": "galeria_obra",
+			"label": "Obra reservada",
+			"fieldtype": "Link",
+			"options": "Obra de Arte",
+			"insert_after": "galeria_pago",
+			"read_only": 1,
+			"depends_on": "eval:doc.galeria_obra",
+		},
+	],
+	"Sales Invoice Item": [
+		{
+			"fieldname": "galeria_obra",
+			"label": "Obra de arte",
+			"fieldtype": "Link",
+			"options": "Obra de Arte",
+			"insert_after": "item_name",
+			"read_only": 1,
+			"depends_on": "eval:doc.galeria_obra",
+		},
+		{
+			"fieldname": "galeria_monto_artista",
+			"label": "Monto para el artista",
+			"fieldtype": "Currency",
+			"options": "Company:company:default_currency",
+			"insert_after": "galeria_obra",
+			"depends_on": "eval:doc.galeria_obra",
+			"description": "Queda congelado en la factura al venderse la obra.",
+			"no_copy": 1,
+		},
+	],
+	# En una pestaña propia al final: Brainfel oculta secciones del formulario.
+	"Customer": [
+		{
+			"fieldname": "galeria_tab",
+			"label": "Galería",
+			"fieldtype": "Tab Break",
+			"insert_after": "portal_users",
+		},
+		{
+			"fieldname": "galeria_tipo_cliente",
+			"label": "Tipo de cliente",
+			"fieldtype": "Select",
+			"options": "\nPúblico\nColeccionista\nEmpresa",
+			"insert_after": "galeria_tab",
+			"in_standard_filter": 1,
+			"translatable": 0,
+		},
+		{
+			"fieldname": "galeria_artistas_interes",
+			"label": "Artistas de interés",
+			"fieldtype": "Table MultiSelect",
+			"options": "Cliente Artista Interes",
+			"insert_after": "galeria_tipo_cliente",
+		},
 	],
 }
 
@@ -89,6 +146,7 @@ def configurar():
 	plantilla = crear_plantilla_iva(company)
 	crear_planes_cuotas()
 	crear_salas()
+	asegurar_grupo_proveedor()
 	configurar_galeria(company, listas, plantilla)
 	frappe.db.commit()
 

@@ -26,7 +26,7 @@ required_apps = ["erpnext", "brainfel"]
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/galeria_arte/css/galeria_arte.css"
-app_include_js = "/assets/galeria_arte/js/galeria_pagos.js"
+app_include_js = ["/assets/galeria_arte/js/galeria_pagos.js", "/assets/galeria_arte/js/galeria_obras.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/galeria_arte/css/galeria_arte.css"
@@ -146,7 +146,12 @@ after_migrate = "galeria_arte.setup.install.after_migrate"
 
 doc_events = {
 	"Sales Invoice": {
-		"on_submit": "galeria_arte.api.facturacion.on_submit_factura",
+		"validate": "galeria_arte.api.obras.validar_factura",
+		"on_submit": [
+			"galeria_arte.api.obras.al_validar_factura",
+			"galeria_arte.api.facturacion.on_submit_factura",
+		],
+		"on_cancel": "galeria_arte.api.obras.al_anular_factura",
 	},
 	"Payment Entry": {
 		"validate": "galeria_arte.api.facturacion.marcar_pago_galeria",

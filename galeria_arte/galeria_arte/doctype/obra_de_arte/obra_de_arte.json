@@ -1,0 +1,357 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 13:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "titulo",
+  "artista",
+  "tecnica",
+  "anio",
+  "column_break_1",
+  "estado",
+  "imagen",
+  "company",
+  "section_medidas",
+  "alto_cm",
+  "column_break_2",
+  "ancho_cm",
+  "column_break_3",
+  "profundidad_cm",
+  "section_precio",
+  "precio_venta",
+  "monto_artista",
+  "ganancia_galeria",
+  "column_break_4",
+  "fecha_ingreso",
+  "fecha_limite_consignacion",
+  "section_desc",
+  "descripcion",
+  "section_fotos",
+  "fotos",
+  "section_reserva",
+  "reservada_por",
+  "fecha_limite_reserva",
+  "column_break_5",
+  "anticipo",
+  "pago_anticipo",
+  "section_venta",
+  "cliente",
+  "factura",
+  "fecha_venta",
+  "column_break_6",
+  "precio_vendido",
+  "monto_artista_venta",
+  "section_erp",
+  "articulo"
+ ],
+ "fields": [
+  {
+   "fieldname": "titulo",
+   "fieldtype": "Data",
+   "label": "Título",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "artista",
+   "fieldtype": "Link",
+   "label": "Artista",
+   "options": "Artista",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "tecnica",
+   "fieldtype": "Data",
+   "label": "Técnica"
+  },
+  {
+   "fieldname": "anio",
+   "fieldtype": "Int",
+   "label": "Año"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "estado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Disponible\nReservada\nVendida\nDevuelta al artista",
+   "default": "Disponible",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "imagen",
+   "fieldtype": "Attach Image",
+   "label": "Foto principal"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Empresa",
+   "options": "Company",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_medidas",
+   "fieldtype": "Section Break",
+   "label": "Medidas (cm)"
+  },
+  {
+   "fieldname": "alto_cm",
+   "fieldtype": "Float",
+   "label": "Alto"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ancho_cm",
+   "fieldtype": "Float",
+   "label": "Ancho"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "profundidad_cm",
+   "fieldtype": "Float",
+   "label": "Profundidad"
+  },
+  {
+   "fieldname": "section_precio",
+   "fieldtype": "Section Break",
+   "label": "Precio y consignación"
+  },
+  {
+   "fieldname": "precio_venta",
+   "fieldtype": "Currency",
+   "label": "Precio de venta (con IVA)",
+   "options": "Company:company:default_currency",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "monto_artista",
+   "fieldtype": "Currency",
+   "label": "Monto para el artista",
+   "options": "Company:company:default_currency",
+   "reqd": 1,
+   "description": "Lo que recibe el artista cuando se venda la obra."
+  },
+  {
+   "fieldname": "ganancia_galeria",
+   "fieldtype": "Currency",
+   "label": "Ganancia de la galería",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "description": "Precio sin IVA menos el monto para el artista."
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fecha_ingreso",
+   "fieldtype": "Date",
+   "label": "Fecha de ingreso",
+   "default": "Today"
+  },
+  {
+   "fieldname": "fecha_limite_consignacion",
+   "fieldtype": "Date",
+   "label": "Consignación hasta"
+  },
+  {
+   "fieldname": "section_desc",
+   "fieldtype": "Section Break",
+   "label": "Descripción"
+  },
+  {
+   "fieldname": "descripcion",
+   "fieldtype": "Small Text",
+   "label": "Descripción"
+  },
+  {
+   "fieldname": "section_fotos",
+   "fieldtype": "Section Break",
+   "label": "Fotos adicionales",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "fotos",
+   "fieldtype": "Table",
+   "label": "Fotos",
+   "options": "Obra de Arte Foto"
+  },
+  {
+   "fieldname": "section_reserva",
+   "fieldtype": "Section Break",
+   "label": "Reserva",
+   "depends_on": "eval:doc.reservada_por"
+  },
+  {
+   "fieldname": "reservada_por",
+   "fieldtype": "Link",
+   "label": "Reservada por",
+   "options": "Customer",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "fecha_limite_reserva",
+   "fieldtype": "Date",
+   "label": "Reserva hasta",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "anticipo",
+   "fieldtype": "Currency",
+   "label": "Anticipo",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "pago_anticipo",
+   "fieldtype": "Link",
+   "label": "Pago del anticipo",
+   "options": "Payment Entry",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_venta",
+   "fieldtype": "Section Break",
+   "label": "Venta",
+   "depends_on": "eval:doc.factura"
+  },
+  {
+   "fieldname": "cliente",
+   "fieldtype": "Link",
+   "label": "Vendida a",
+   "options": "Customer",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "factura",
+   "fieldtype": "Link",
+   "label": "Factura",
+   "options": "Sales Invoice",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "fecha_venta",
+   "fieldtype": "Date",
+   "label": "Fecha de venta",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "precio_vendido",
+   "fieldtype": "Currency",
+   "label": "Precio vendido",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "monto_artista_venta",
+   "fieldtype": "Currency",
+   "label": "Monto para el artista (congelado)",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_erp",
+   "fieldtype": "Section Break",
+   "label": "Vínculo contable",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "articulo",
+   "fieldtype": "Link",
+   "label": "Artículo",
+   "options": "Item",
+   "description": "Se crea automáticamente para poder facturar la obra.",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Obra de Arte",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "OBRA-.####",
+ "naming_rule": "Expression (old style)",
+ "image_field": "imagen",
+ "title_field": "titulo",
+ "show_title_field_in_link": 1,
+ "search_fields": "titulo,artista,estado",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "track_changes": 1
+}

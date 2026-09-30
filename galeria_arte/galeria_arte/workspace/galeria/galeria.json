@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
+ "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-catalogo\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Catálogo de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-arte\", \"type\": \"card\", \"data\": {\"card_name\": \"Arte\", \"col\": 4}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
  "creation": "2026-09-29 16:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,6 +12,54 @@
  "is_hidden": 0,
  "label": "Galería",
  "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Arte",
+   "link_count": 4,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Catálogo de Obras",
+   "link_count": 0,
+   "link_to": "catalogo-obras",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Obras de Arte",
+   "link_count": 0,
+   "link_to": "Obra de Arte",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Artistas",
+   "link_count": 0,
+   "link_to": "Artista",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Ficha del Coleccionista",
+   "link_count": 0,
+   "link_to": "ficha-coleccionista",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -129,7 +177,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-30 11:00:00.000000",
+ "modified": "2026-09-30 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Galería",
@@ -147,6 +195,13 @@
    "doc_view": "",
    "label": "POS Cafetería",
    "link_to": "pos-galeria",
+   "type": "Page"
+  },
+  {
+   "color": "Purple",
+   "doc_view": "",
+   "label": "Catálogo de Obras",
+   "link_to": "catalogo-obras",
    "type": "Page"
   },
   {
