@@ -2,7 +2,8 @@
 // For license information, please see license.txt
 
 // Venta de Obras: el punto de venta de arte, separado del POS de cafetería.
-// Tres pestañas: Vender / Reservar, Reservaciones y Ventas de arte.
+// Pestañas: Vender / Reservar, Reservaciones, Subastas (obras ganadas por
+// cobrar) y Ventas de arte.
 
 frappe.pages["venta-obras"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Venta de Obras"), single_column: true });
@@ -26,7 +27,8 @@ class VentaObras {
 		this.pestana = "vender";
 		this.buscar = "";
 		this.filtro_reservas = "Activa";
-		this.datos = { obras: [], reservaciones: [], ventas: [], totales: {} };
+		this.filtro_subastas = "Adjudicada";
+		this.datos = { obras: [], reservaciones: [], ventas: [], subastas: [], totales: {} };
 
 		page.set_primary_action(__("Nueva obra"), () => frappe.new_doc("Obra de Arte"), "add");
 		page.set_secondary_action(__("Actualizar"), () => this.cargar(), "refresh");
@@ -48,6 +50,10 @@ class VentaObras {
 		});
 		this.$cuerpo.on("change", "[data-filtro-reservas]", (e) => {
 			this.filtro_reservas = e.currentTarget.value;
+			this.pintar_cuerpo();
+		});
+		this.$cuerpo.on("change", "[data-filtro-subastas]", (e) => {
+			this.filtro_subastas = e.currentTarget.value;
 			this.pintar_cuerpo();
 		});
 		this.$cuerpo.on("click", "[data-accion]", (e) => this.accion($(e.currentTarget)));
@@ -75,6 +81,8 @@ class VentaObras {
 		if (accion === "cobrar") galeria.pagos.registrar(id, recargar);
 		if (accion === "estado") galeria.pagos.estado_cuenta(id);
 		if (accion === "factura") galeria.obras.imprimir("Sales Invoice", id, "Factura Galería");
+		if (accion === "cobrar-subasta") galeria.eventos.cobrar_subasta($el.attr("data-evento"), id, recargar);
+		if (accion === "ver-subasta") galeria.eventos.resumen(id, recargar);
 	}
 
 	pintar() {
@@ -116,6 +124,7 @@ class VentaObras {
 		this.$tabs.html(
 			tab("vender", __("Vender / Reservar"), d.obras.length) +
 				tab("reservas", __("Reservaciones"), t.reservas_activas || 0, t.reservas_vencidas > 0) +
+				tab("subastas", __("Subastas por cobrar"), t.subastas_por_pagar || 0, t.subastas_por_vencer > 0) +
 				tab("ventas", __("Ventas de arte"), d.ventas.length)
 		);
 	}
@@ -123,6 +132,7 @@ class VentaObras {
 	pintar_cuerpo(solo_lista) {
 		if (this.pestana === "vender") return this.pintar_vender(solo_lista);
 		if (this.pestana === "reservas") return this.pintar_reservas();
+		if (this.pestana === "subastas") return this.pintar_subastas();
 		return this.pintar_ventas();
 	}
 
@@ -257,7 +267,66 @@ class VentaObras {
 	}
 
 	// ------------------------------------------------------------------
-	// Pestaña 3: ventas de arte
+	// Pestaña 3: obras ganadas en subasta (pago al contado en 7 días)
+	// ------------------------------------------------------------------
+
+	pintar_subastas() {
+		const esc = frappe.utils.escape_html;
+		const m = galeria.pagos.moneda;
+		const opciones = [
+			["Adjudicada", __("Por pagar")],
+			["Vencida", __("No pagaron")],
+			["Pagada", __("Pagadas")],
+			["", __("Todas")],
+		];
+		const f = this.filtro_subastas;
+		const lista = this.datos.subastas.filter((x) => !f || x.resultado === f);
+		const filas = lista
+			.map((x) => {
+				const [etiqueta, color] = galeria.eventos.RESULTADOS_SUBASTA[x.resultado] || [x.resultado, "gray"];
+				let detalle = "";
+				if (x.resultado === "Adjudicada") detalle = galeria.eventos.plazo_pago(x.fecha_limite_pago, x.dias_restantes);
+				if (x.resultado === "Vencida") detalle = __("Venció el {0}", [frappe.datetime.str_to_user(x.fecha_limite_pago)]);
+				if (x.resultado === "Pagada" && x.factura)
+					detalle = `<a href="/app/sales-invoice/${encodeURIComponent(x.factura)}">${esc(x.factura)}</a>`;
+				const acciones =
+					x.resultado === "Adjudicada"
+						? `<button class="btn btn-xs btn-primary" data-accion="cobrar-subasta" data-id="${esc(x.lote)}" data-evento="${esc(x.evento)}">${__("Cobrar")}</button>`
+						: x.resultado === "Pagada" && x.factura
+						? `<button class="btn btn-xs btn-default" data-accion="factura" data-id="${esc(x.factura)}">${__("Imprimir")}</button>`
+						: "";
+				return `<tr>
+					<td><a href="/app/obra-de-arte/${encodeURIComponent(x.obra)}">${esc(x.titulo || x.obra)}</a><span class="gal-sub">${esc(x.artista || "")}</span></td>
+					<td><a href="#" data-accion="ver-subasta" data-id="${esc(x.evento)}">${esc(x.subasta)}</a>
+						<span class="gal-sub">${frappe.datetime.str_to_user(String(x.inicio || "").slice(0, 10))}</span></td>
+					<td class="nowrap"><a href="/app/ficha-coleccionista?cliente=${encodeURIComponent(x.comprador || "")}">${esc(x.comprador_nombre || x.comprador || "")}</a></td>
+					<td class="text-right">${m(x.precio_inicial)}</td>
+					<td class="text-right"><b>${m(x.precio_ganador)}</b></td>
+					<td><span class="indicator-pill ${color}">${etiqueta}</span>${detalle ? `<span class="gal-sub">${detalle}</span>` : ""}</td>
+					<td class="vo-acciones-fila">${acciones}</td>
+				</tr>`;
+			})
+			.join("");
+		this.$cuerpo.html(`
+			<div class="vo-barra">
+				<select class="form-control" data-filtro-subastas style="max-width: 240px">
+					${opciones.map(([v, t]) => `<option value="${v}" ${v === f ? "selected" : ""}>${t}</option>`).join("")}
+				</select>
+				<span class="text-muted small" style="align-self: center">${__("El ganador paga el precio completo, al contado, en 7 días. La factura se emite al cobrar.")}</span>
+			</div>
+			${
+				lista.length
+					? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
+						<thead><tr><th>${__("Obra")}</th><th>${__("Subasta")}</th><th>${__("Comprador")}</th>
+						<th class="text-right">${__("Precio inicial")}</th><th class="text-right">${__("Precio ganador")}</th>
+						<th>${__("Estado")}</th><th></th></tr></thead>
+						<tbody>${filas}</tbody></table></div>`
+					: `<div class="vo-vacio">${f === "Adjudicada" ? __("No hay obras de subasta pendientes de pago.") : __("No hay obras de subasta con ese filtro.")}</div>`
+			}`);
+	}
+
+	// ------------------------------------------------------------------
+	// Pestaña 4: ventas de arte
 	// ------------------------------------------------------------------
 
 	pintar_ventas() {
@@ -275,8 +344,9 @@ class VentaObras {
 				const obras = v.obras.length
 					? v.obras.map((o) => `<span class="nowrap">${esc(o.titulo)}</span><span class="gal-sub">${esc(o.artista)}</span>`).join("")
 					: `<span class="text-muted">—</span>`;
-				const detalle = galeria.pagos.detalle_plan(v);
-				const forma = `${esc(galeria.pagos.texto_plan(v))}${detalle ? `<span class="gal-sub">${esc(detalle)}</span>` : ""}`;
+				const detalle = v.galeria_evento ? __("Contado") : galeria.pagos.detalle_plan(v);
+				const plan = v.galeria_evento ? __("Venta en subasta") : galeria.pagos.texto_plan(v);
+				const forma = `${esc(plan)}${detalle ? `<span class="gal-sub">${esc(detalle)}</span>` : ""}`;
 				return `
 				<tr>
 					<td><a href="/app/sales-invoice/${encodeURIComponent(v.name)}">${esc(v.name)}</a>

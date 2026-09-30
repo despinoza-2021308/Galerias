@@ -129,3 +129,45 @@
 		grid-column: 1 / -1;
 	}
 }
+
+/* Subasta: el título de la obra puede bajar de línea para que quepan los botones. */
+.gal-tabla-subasta td:first-child {
+	white-space: normal;
+	min-width: 140px;
+}
+.gal-lote-acciones {
+	text-align: right;
+}
+.gal-lote-acciones .btn {
+	margin: 2px 0 2px 4px;
+}
+
+@media (max-width: 575px) {
+	.gal-ocultar-movil {
+		display: none;
+	}
+	/* En el celular cada obra de la subasta es una tarjeta. */
+	.gal-tabla-subasta thead {
+		display: none;
+	}
+	.gal-tabla-subasta tr {
+		display: block;
+		padding: var(--padding-sm) 0;
+		border-bottom: 1px solid var(--border-color);
+	}
+	.gal-tabla-subasta td,
+	.gal-tabla-subasta td.text-right {
+		display: block;
+		border: none;
+		padding: 2px 0;
+		text-align: left !important;
+	}
+	.gal-tabla-subasta td.gal-ocultar-movil {
+		display: none;
+	}
+	.gal-lote-acciones .btn {
+		display: block;
+		width: 100%;
+		margin: 0 0 4px;
+	}
+}

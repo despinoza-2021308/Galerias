@@ -42,6 +42,9 @@ frappe.ui.form.on("Obra de Arte", {
 				frm.add_custom_button(__("Cancelar reserva"), () => galeria.obras.cancelar_reserva(res, recargar), __("Reserva"));
 			}
 		}
+		if (estado === "En subasta" && frm.doc.subasta) {
+			frm.add_custom_button(__("Ver subasta"), () => galeria.eventos.resumen(frm.doc.subasta, recargar)).addClass("btn-primary");
+		}
 		if (estado === "Vendida") {
 			frappe.xcall("galeria_arte.api.liquidaciones.estado_obra", { obra: frm.doc.name }).then((p) => {
 				if (!p) return;
@@ -98,6 +101,11 @@ function mostrar_aviso(frm) {
 						m(d.anticipo),
 				  ]),
 			vencida ? "red" : "yellow"
+		);
+	} else if (d.estado === "En subasta") {
+		frm.set_intro(
+			__("La obra está en la subasta {0}: no se puede vender ni reservar por otro lado. Se cobra desde la subasta.", [d.subasta]),
+			"blue"
 		);
 	} else if (d.estado === "Vendida") {
 		frm.set_intro(

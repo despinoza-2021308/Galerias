@@ -2,8 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Evento", {
+	setup(frm) {
+		frm.set_query("obra", "lotes", () => ({ filters: { estado: "Disponible" } }));
+	},
+
 	refresh(frm) {
 		const d = frm.doc;
+		preparar_lotes(frm);
 		if (frm.is_new()) return;
 		const recargar = () => frm.reload_doc();
 		frm.page.set_indicator(d.estado, galeria.eventos.COLORES_ESTADO[d.estado] || "gray");
@@ -11,6 +16,12 @@ frappe.ui.form.on("Evento", {
 
 		if (d.tipo !== "Alquiler" && d.estado === "Planificado") {
 			frm.add_custom_button(__("Publicar"), () => galeria.eventos.publicar(d.name, recargar)).addClass("btn-primary");
+		}
+		if (d.tipo === "Subasta" && ["Planificado", "Publicado"].includes(d.estado)) {
+			frm.add_custom_button(__("Agregar obra"), () => galeria.eventos.agregar_obra(d.name, recargar));
+		}
+		if (d.tipo === "Subasta" && d.estado === "Realizado") {
+			frm.add_custom_button(__("Resultados y cobros"), () => galeria.eventos.resumen(d.name, recargar)).addClass("btn-primary");
 		}
 		if (d.tipo === "Cena" && d.estado === "Publicado" && cint(d.cupo) > cint(d.lugares_vendidos)) {
 			frm.add_custom_button(__("Vender boletos"), () => galeria.eventos.vender_boletos(d.name, recargar)).addClass("btn-primary");
@@ -43,7 +54,34 @@ frappe.ui.form.on("Evento", {
 
 	sala: poner_precio,
 	todo_el_espacio: poner_precio,
+	estado: preparar_lotes,
 });
+
+frappe.ui.form.on("Evento Lote", {
+	async obra(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (!row.obra || flt(row.precio_inicial)) return;
+		const r = await frappe.db.get_value("Obra de Arte", row.obra, "precio_venta");
+		if (r.message) frappe.model.set_value(cdt, cdn, "precio_inicial", r.message.precio_venta);
+	},
+});
+
+// Subasta: las obras se agregan antes del evento; el precio ganador y el
+// comprador se registran cuando ya se realizó.
+function preparar_lotes(frm) {
+	const grid = frm.fields_dict.lotes && frm.fields_dict.lotes.grid;
+	if (!grid) return;
+	const antes = frm.is_new() || ["Planificado", "Publicado"].includes(frm.doc.estado);
+	const realizada = frm.doc.estado === "Realizado";
+	grid.update_docfield_property("obra", "read_only", antes ? 0 : 1);
+	grid.update_docfield_property("precio_inicial", "read_only", antes ? 0 : 1);
+	for (const campo of ["precio_ganador", "comprador", "sin_venta"]) {
+		grid.update_docfield_property(campo, "read_only", realizada ? 0 : 1);
+	}
+	grid.cannot_add_rows = !antes;
+	grid.cannot_delete_rows = !antes;
+	grid.refresh();
+}
 
 // Alquiler: el precio base sale de la sala (o de todo el espacio) si aún no tiene uno.
 async function poner_precio(frm) {
@@ -65,6 +103,23 @@ function mostrar_aviso(frm) {
 		frm.set_intro(__("Saldo pendiente de {0}: debe pagarse antes del evento.", [m(d.saldo)]), "red");
 	} else if (d.tipo === "Cena") {
 		frm.set_intro(__("{0} de {1} lugares vendidos.", [cint(d.lugares_vendidos), cint(d.cupo)]), "blue");
+	} else if (d.tipo === "Subasta") {
+		const lotes = d.lotes || [];
+		const cuenta = (r) => lotes.filter((l) => l.resultado === r).length;
+		if (d.estado === "Realizado") {
+			const partes = [__("{0} de {1} obras vendidas", [cuenta("Adjudicada") + cuenta("Pagada"), lotes.length])];
+			if (cuenta("Adjudicada")) partes.push(__("{0} por pagar", [cuenta("Adjudicada")]));
+			if (cuenta("Pendiente")) partes.push(__("falta el resultado de {0}", [cuenta("Pendiente")]));
+			frm.set_intro(
+				partes.join(" · ") + ". " + __("El comprador paga al contado en 7 días; cobre desde «Resultados y cobros»."),
+				cuenta("Pendiente") || cuenta("Adjudicada") ? "orange" : "green"
+			);
+		} else if (!["Cancelado", "Vencido"].includes(d.estado)) {
+			frm.set_intro(
+				__("Agregue las obras con su precio inicial. Al terminar, marque la subasta como realizada y registre el precio ganador y el comprador."),
+				"blue"
+			);
+		}
 	} else if (d.tipo === "Exposición") {
 		frm.set_intro(__("La exposición ocupa la sala mientras dure: no se pueden programar otros eventos en ella."), "blue");
 	}

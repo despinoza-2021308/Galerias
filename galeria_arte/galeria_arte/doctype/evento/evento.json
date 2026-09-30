@@ -21,6 +21,8 @@
   "descripcion",
   "section_expo",
   "obras",
+  "section_subasta",
+  "lotes",
   "section_cena",
   "cupo",
   "precio_boleto",
@@ -157,6 +159,19 @@
    "fieldtype": "Table",
    "label": "Obras",
    "options": "Evento Obra"
+  },
+  {
+   "fieldname": "section_subasta",
+   "fieldtype": "Section Break",
+   "label": "Obras a subastar",
+   "depends_on": "eval:doc.tipo == 'Subasta'",
+   "description": "Al terminar la subasta, márquela como realizada y registre el precio ganador y el comprador de cada obra. El comprador paga al contado en un plazo de 7 días."
+  },
+  {
+   "fieldname": "lotes",
+   "fieldtype": "Table",
+   "label": "Obras a subastar",
+   "options": "Evento Lote"
   },
   {
    "fieldname": "section_cena",
@@ -318,7 +333,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-30 21:00:00.000000",
+ "modified": "2026-09-30 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Evento",

@@ -139,13 +139,20 @@ def quitar_obra_de_prueba():
 
 
 def cargar_eventos():
-	"""Una exposición, dos cenas y un alquiler tentativo. No duplica por nombre."""
+	"""Una exposición, dos cenas, una subasta y un alquiler tentativo. No duplica por nombre."""
 	from frappe.utils import add_days, getdate, nowdate
 
 	hoy = getdate(nowdate())
 	viernes = add_days(hoy, (4 - hoy.weekday()) % 7 or 7)
 	obras_elena = frappe.get_all(
 		"Obra de Arte", filters={"artista": "Elena Marroquín", "estado": ["!=", "Devuelta al artista"]}, pluck="name", limit=3
+	)
+	obras_subasta = frappe.get_all(
+		"Obra de Arte",
+		filters={"artista": ["!=", "Elena Marroquín"], "estado": "Disponible"},
+		pluck="name",
+		order_by="precio_venta desc",
+		limit=2,
 	)
 	cliente = frappe.db.get_value("Customer", {"customer_name": ["like", "María%"]}, "name") or frappe.db.get_single_value(
 		"Configuracion Galeria", "cliente_consumidor_final"
@@ -180,6 +187,16 @@ def cargar_eventos():
 			"sala": "Salón Privado",
 			"cupo": 16,
 			"precio_boleto": 450,
+		},
+		{
+			"nombre": "Subasta de Arte Contemporáneo",
+			"tipo": "Subasta",
+			"inicio": f"{add_days(hoy, 8)} 18:00:00",
+			"fin": f"{add_days(hoy, 8)} 21:00:00",
+			"sala": "Salón Privado",
+			"descripcion": "Subasta en vivo de obras de artistas guatemaltecos. El ganador paga al contado en 7 días.",
+			"lotes": [{"obra": o} for o in obras_subasta],
+			"_publicar": True,
 		},
 		{
 			"nombre": "Celebración privada",

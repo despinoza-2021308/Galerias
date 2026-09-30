@@ -186,7 +186,10 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-	"daily": ["galeria_arte.api.eventos.vencer_tentativas"],
+	"daily": [
+		"galeria_arte.api.eventos.vencer_tentativas",
+		"galeria_arte.api.eventos.vencer_adjudicaciones",
+	],
 }
 
 # scheduler_events = {

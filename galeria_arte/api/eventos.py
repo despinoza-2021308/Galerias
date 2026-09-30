@@ -10,6 +10,10 @@
 - Alquiler (lo pide un cliente): Tentativo (vence si no deja anticipo) →
   Confirmado con anticipo → abonos hasta completar → Liquidado (factura pagada)
   → Realizado. El saldo se paga antes del evento.
+- Subasta: se agregan las obras con su precio inicial (quedan En subasta).
+  Al terminar se registra el precio ganador y el comprador; el comprador paga
+  al contado en 7 días y en ese momento se emite la factura. Si no paga, la
+  obra vuelve a estar disponible.
 """
 
 import frappe
@@ -27,11 +31,16 @@ from galeria_arte.api.facturacion import (
 	recibir_anticipo,
 )
 from galeria_arte.galeria_arte.doctype.evento.evento import (
+	ADJUDICADA,
 	ALQUILER,
 	CENA,
+	DIAS_PAGO_SUBASTA,
 	EXPOSICION,
 	INACTIVOS,
+	PAGADA,
+	PENDIENTE,
 	SUBASTA,
+	VENCIDA,
 )
 
 AREA = "Eventos"
@@ -71,6 +80,8 @@ def marcar_realizado(evento: str) -> dict:
 		frappe.throw(_("El alquiler debe estar liquidado (saldo pagado) antes de marcarlo como realizado."))
 	if ev.tipo != ALQUILER and ev.estado not in ("Planificado", "Publicado"):
 		frappe.throw(_("El evento no se puede marcar como realizado (estado: {0}).").format(ev.estado))
+	if ev.tipo == SUBASTA and not ev.lotes:
+		frappe.throw(_("Agregue al menos una obra a la subasta."))
 	ev.estado = "Realizado"
 	ev.save()
 	return {"evento": ev.name, "estado": ev.estado}
@@ -261,6 +272,163 @@ def vencer_tentativas():
 
 
 # ---------------------------------------------------------------------------
+# Subastas
+# ---------------------------------------------------------------------------
+
+
+def _lote(ev, lote: str):
+	fila = next((l for l in ev.lotes if l.name == lote), None)
+	if not fila:
+		frappe.throw(_("La obra no pertenece a esta subasta."))
+	return fila
+
+
+def _subasta(evento: str, permiso: str = "write"):
+	ev = _evento(evento, permiso)
+	if ev.tipo != SUBASTA:
+		frappe.throw(_("El evento {0} no es una subasta.").format(ev.name))
+	return ev
+
+
+@frappe.whitelist()
+def agregar_lote(evento: str, obra: str, precio_inicial: str | float | None = None) -> dict:
+	ev = _subasta(evento)
+	ev.append("lotes", {"obra": obra, "precio_inicial": flt(precio_inicial) or None})
+	ev.save()
+	return {"evento": ev.name, "obras": len(ev.lotes)}
+
+
+@frappe.whitelist()
+def quitar_lote(evento: str, lote: str) -> dict:
+	ev = _subasta(evento)
+	fila = _lote(ev, lote)
+	ev.remove(fila)
+	ev.save()
+	return {"evento": ev.name, "obras": len(ev.lotes)}
+
+
+@frappe.whitelist()
+def registrar_resultado(
+	evento: str,
+	lote: str,
+	vendida: int = 1,
+	precio_ganador: str | float | None = None,
+	comprador: str | None = None,
+) -> dict:
+	"""Resultado de una obra al terminar la subasta: precio ganador y comprador,
+	o que no se vendió."""
+	ev = _subasta(evento)
+	if ev.estado != "Realizado":
+		frappe.throw(_("Marque la subasta como realizada para registrar los resultados."))
+	fila = _lote(ev, lote)
+	if cint(vendida):
+		fila.update({"sin_venta": 0, "precio_ganador": flt(precio_ganador), "comprador": comprador})
+	else:
+		fila.update({"sin_venta": 1, "precio_ganador": 0, "comprador": None})
+	ev.save()
+	fila = _lote(ev, lote)
+	return {"evento": ev.name, "resultado": fila.resultado, "fecha_limite_pago": fila.fecha_limite_pago}
+
+
+@frappe.whitelist()
+def datos_cobro_subasta(evento: str, lote: str) -> dict:
+	ev = _subasta(evento, "read")
+	fila = _lote(ev, lote)
+	obra = frappe.db.get_value("Obra de Arte", fila.obra, ["titulo", "artista", "monto_artista"], as_dict=True)
+	return {
+		"evento": ev.name,
+		"subasta": ev.nombre,
+		"lote": fila.name,
+		"obra": fila.obra,
+		"titulo": obra.titulo,
+		"artista": obra.artista,
+		"monto_artista": obra.monto_artista,
+		"precio_inicial": fila.precio_inicial,
+		"precio_ganador": fila.precio_ganador,
+		"comprador": fila.comprador,
+		"comprador_nombre": fila.comprador_nombre,
+		"resultado": fila.resultado,
+		"fecha_limite_pago": fila.fecha_limite_pago,
+		"dias_restantes": (getdate(fila.fecha_limite_pago) - getdate(nowdate())).days if fila.fecha_limite_pago else None,
+		"modos_pago": opciones_cobro()["modos_pago"],
+	}
+
+
+@frappe.whitelist()
+def cobrar_subasta(evento: str, lote: str, pagos, monto_artista: str | float | None = None) -> dict:
+	"""El comprador paga el precio ganador completo, al contado; en ese momento
+	se emite la factura (ya pagada) y la obra queda vendida."""
+	ev = _subasta(evento)
+	fila = _lote(ev, lote)
+	if fila.resultado != ADJUDICADA:
+		frappe.throw(_("La obra no está pendiente de pago (estado: {0}).").format(fila.resultado))
+	if getdate(fila.fecha_limite_pago) < getdate(nowdate()):
+		frappe.throw(
+			_("El plazo para pagar venció el {0}; la adjudicación ya no es válida.").format(
+				formatdate(fila.fecha_limite_pago)
+			)
+		)
+	total = flt(fila.precio_ganador, 2)
+	pagos = [p for p in (_cargar(pagos) or []) if flt(p.get("monto")) > 0]
+	modos = opciones_cobro()["modos_pago"]
+	for p in pagos:
+		if p.get("modo_pago") not in modos:
+			frappe.throw(_("Forma de pago no válida: {0}").format(p.get("modo_pago")))
+	pagado = flt(sum(flt(p["monto"]) for p in pagos), 2)
+	if abs(pagado - total) > 0.005:
+		frappe.throw(
+			_("La obra de subasta se paga al contado: los pagos (Q{0}) deben sumar el precio ganador (Q{1}).").format(
+				pagado, total
+			)
+		)
+	obra = frappe.get_doc("Obra de Arte", fila.obra)
+	monto_artista = flt(monto_artista) if monto_artista not in (None, "") else flt(obra.monto_artista)
+	if monto_artista < 0:
+		frappe.throw(_("El monto para el artista no puede ser negativo."))
+
+	estado = crear_factura(
+		items=[{"item_code": obra.articulo, "qty": 1, "rate": total, "galeria_monto_artista": monto_artista}],
+		cliente=fila.comprador,
+		area="Arte",
+		pagos=pagos,
+		observaciones=f"Venta en subasta {ev.name} - {ev.nombre}",
+		campos={"galeria_evento": ev.name},
+	)
+	ev.reload()
+	fila = _lote(ev, lote)
+	fila.resultado = PAGADA
+	fila.factura = estado["factura"]
+	ev.flags.galeria_resultado_sistema = True
+	ev.save()
+	estado.update({"evento": ev.name, "obra": obra.name})
+	return estado
+
+
+def vencer_adjudicaciones():
+	"""Tarea diaria (y al abrir el calendario o Venta de Obras): si el comprador
+	no pagó en el plazo, la adjudicación vence y la obra vuelve al catálogo."""
+	hoy = nowdate()
+	for nombre in frappe.get_all(
+		"Evento Lote",
+		filters={"parenttype": "Evento", "resultado": ADJUDICADA, "fecha_limite_pago": ["<", hoy]},
+		pluck="parent",
+		distinct=True,
+	):
+		ev = frappe.get_doc("Evento", nombre)
+		for l in ev.lotes:
+			if l.resultado == ADJUDICADA and l.fecha_limite_pago and str(l.fecha_limite_pago) < hoy:
+				l.resultado = VENCIDA
+				ev.add_comment(
+					"Info",
+					_("{0} no pagó {1} antes del {2}; la obra vuelve a estar disponible.").format(
+						l.comprador_nombre or l.comprador, l.titulo or l.obra, formatdate(l.fecha_limite_pago)
+					),
+				)
+		ev.flags.galeria_resultado_sistema = True
+		ev.save(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
 # Factura anulada
 # ---------------------------------------------------------------------------
 
@@ -276,6 +444,13 @@ def al_anular_factura(doc, method=None):
 			ev.estado = "Confirmado"
 	elif ev.tipo == CENA:
 		ev.set("asistentes", [a for a in ev.asistentes if a.factura != doc.name])
+	elif ev.tipo == SUBASTA:
+		# La obra vuelve a quedar adjudicada al comprador, con el mismo plazo.
+		for l in ev.lotes:
+			if l.factura == doc.name:
+				l.resultado = ADJUDICADA
+				l.factura = None
+		ev.flags.galeria_resultado_sistema = True
 	else:
 		return
 	ev.flags.ignore_permissions = True
@@ -298,6 +473,7 @@ def calendario(
 	"""Eventos del rango visible para el calendario."""
 	frappe.has_permission("Evento", "read", throw=True)
 	vencer_tentativas()
+	vencer_adjudicaciones()
 	filtros = [["inicio", "<", end], ["fin", ">", start]]
 	if tipo:
 		filtros.append(["tipo", "=", tipo])
@@ -314,6 +490,20 @@ def calendario(
 		limit_page_length=1000,
 	)
 	colores_sala = {s.name: s.color for s in frappe.get_all("Sala", fields=["name", "color"])}
+	subastas = [e.name for e in eventos if e.tipo == SUBASTA]
+	obras_subasta = {
+		f.parent: f.cantidad
+		for f in (
+			frappe.get_all(
+				"Evento Lote",
+				filters={"parenttype": "Evento", "parent": ["in", subastas]},
+				fields=["parent", "count(name) as cantidad"],
+				group_by="parent",
+			)
+			if subastas
+			else []
+		)
+	}
 	hoy = getdate(nowdate())
 	salida = []
 	for e in eventos:
@@ -326,6 +516,9 @@ def calendario(
 			detalle = f" · {cint(e.lugares_vendidos)}/{cint(e.cupo)}"
 		elif e.tipo == ALQUILER and e.cliente:
 			detalle = f" · {e.cliente}"
+		elif e.tipo == SUBASTA:
+			n = obras_subasta.get(e.name, 0)
+			detalle = f" · {n} {_('obra') if n == 1 else _('obras')}"
 		clases = [f"gal-ev-{frappe.scrub(e.tipo)}"]
 		if e.estado == "Tentativo":
 			clases.append("gal-ev-tentativo")
@@ -456,6 +649,50 @@ def resumen(evento: str) -> dict:
 				"vence_tentativa": ev.vence_tentativa,
 				"factura": ev.factura,
 				"dias_para_evento": (getdate(ev.inicio) - getdate(nowdate())).days,
+			}
+		)
+	elif ev.tipo == SUBASTA:
+		hoy = getdate(nowdate())
+		imagenes = {
+			o.name: o
+			for o in frappe.get_all(
+				"Obra de Arte",
+				filters={"name": ["in", [l.obra for l in ev.lotes] or [""]]},
+				fields=["name", "imagen", "monto_artista", "precio_venta"],
+			)
+		}
+		lotes = []
+		for l in ev.lotes:
+			o = imagenes.get(l.obra) or frappe._dict()
+			lotes.append(
+				{
+					"lote": l.name,
+					"obra": l.obra,
+					"titulo": l.titulo,
+					"artista": l.artista,
+					"imagen": o.imagen,
+					"precio_obra": o.precio_venta,
+					"precio_inicial": l.precio_inicial,
+					"precio_ganador": l.precio_ganador,
+					"comprador": l.comprador,
+					"comprador_nombre": l.comprador_nombre,
+					"resultado": l.resultado,
+					"fecha_limite_pago": l.fecha_limite_pago,
+					"dias_restantes": (getdate(l.fecha_limite_pago) - hoy).days if l.resultado == ADJUDICADA else None,
+					"factura": l.factura,
+				}
+			)
+		vendidas = [l for l in ev.lotes if l.resultado in (ADJUDICADA, PAGADA)]
+		datos.update(
+			{
+				"lotes": lotes,
+				"dias_pago": DIAS_PAGO_SUBASTA,
+				"ofrecidas": len(ev.lotes),
+				"vendidas": len(vendidas),
+				"pendientes": len([l for l in ev.lotes if l.resultado == PENDIENTE]),
+				"total_ganador": flt(sum(flt(l.precio_ganador) for l in vendidas), 2),
+				"cobrado": flt(sum(flt(l.precio_ganador) for l in ev.lotes if l.resultado == PAGADA), 2),
+				"por_cobrar": flt(sum(flt(l.precio_ganador) for l in ev.lotes if l.resultado == ADJUDICADA), 2),
 			}
 		)
 	elif ev.tipo == EXPOSICION:

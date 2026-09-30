@@ -1,0 +1,131 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 23:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "obra",
+  "titulo",
+  "artista",
+  "precio_inicial",
+  "column_break_1",
+  "sin_venta",
+  "precio_ganador",
+  "comprador",
+  "comprador_nombre",
+  "column_break_2",
+  "resultado",
+  "fecha_limite_pago",
+  "factura"
+ ],
+ "fields": [
+  {
+   "fieldname": "obra",
+   "fieldtype": "Link",
+   "label": "Obra",
+   "options": "Obra de Arte",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "titulo",
+   "fieldtype": "Data",
+   "label": "Título",
+   "fetch_from": "obra.titulo",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "artista",
+   "fieldtype": "Link",
+   "label": "Artista",
+   "options": "Artista",
+   "fetch_from": "obra.artista",
+   "read_only": 1
+  },
+  {
+   "fieldname": "precio_inicial",
+   "fieldtype": "Currency",
+   "label": "Precio inicial",
+   "description": "Precio con el que empieza la subasta. Si se deja vacío, se usa el precio de la obra.",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break",
+   "label": "Resultado de la subasta"
+  },
+  {
+   "fieldname": "sin_venta",
+   "fieldtype": "Check",
+   "label": "No se vendió",
+   "description": "Marque si nadie pujó; la obra vuelve a estar disponible."
+  },
+  {
+   "fieldname": "precio_ganador",
+   "fieldtype": "Currency",
+   "label": "Precio ganador",
+   "description": "Precio final con el que se vendió. Se llena al terminar la subasta.",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "comprador",
+   "fieldtype": "Link",
+   "label": "Comprador",
+   "options": "Customer",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "comprador_nombre",
+   "fieldtype": "Data",
+   "label": "Nombre del comprador",
+   "fetch_from": "comprador.customer_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "resultado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Pendiente\nAdjudicada\nPagada\nNo vendida\nVencida",
+   "default": "Pendiente",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "fecha_limite_pago",
+   "fieldtype": "Date",
+   "label": "Pagar antes de",
+   "read_only": 1
+  },
+  {
+   "fieldname": "factura",
+   "fieldtype": "Link",
+   "label": "Factura",
+   "options": "Sales Invoice",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 23:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Evento Lote",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

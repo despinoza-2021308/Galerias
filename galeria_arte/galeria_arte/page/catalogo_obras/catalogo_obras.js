@@ -21,7 +21,7 @@ frappe.pages["catalogo-obras"].on_page_show = function (wrapper) {
 	}
 };
 
-const CAT_ESTADOS = ["Disponible", "Reservada", "Vendida", "Devuelta al artista"];
+const CAT_ESTADOS = ["Disponible", "Reservada", "En subasta", "Vendida", "Devuelta al artista"];
 
 class CatalogoObras {
 	constructor(page) {
@@ -72,6 +72,7 @@ class CatalogoObras {
 			if (accion === "reservar") galeria.obras.reservar(obra, recargar);
 			if (accion === "vender") galeria.obras.vender(obra, recargar);
 			if (accion === "cancelar") galeria.obras.cancelar_reserva($el.attr("data-reserva"), recargar);
+			if (accion === "subasta") galeria.eventos.resumen($el.attr("data-subasta"), recargar);
 		});
 
 		this.listo = true;
@@ -137,10 +138,15 @@ class CatalogoObras {
 						} ${frappe.datetime.str_to_user(o.fecha_limite_reserva)} · ${__("abonado")} ${m(o.anticipo)}</div>`;
 					} else if (o.estado === "Vendida") {
 						nota = `<div class="cat-obra-nota text-muted">${__("Vendida a")} ${esc(o.cliente || "")}</div>`;
+					} else if (o.estado === "En subasta") {
+						nota = `<div class="cat-obra-nota text-muted">${__("En la subasta")} ${esc(o.subasta || "")}</div>`;
 					}
 					const b = (accion, texto, clase = "btn-default") =>
 						`<button class="btn btn-sm ${clase}" data-accion="${accion}" data-obra="${esc(o.name)}">${texto}</button>`;
 					let acciones = b("ver", __("Ver"));
+					if (o.estado === "En subasta" && o.subasta) {
+						acciones += `<button class="btn btn-sm btn-default" data-accion="subasta" data-obra="${esc(o.name)}" data-subasta="${esc(o.subasta)}">${__("Ver subasta")}</button>`;
+					}
 					if (o.estado === "Disponible") acciones += b("reservar", __("Reservar")) + b("vender", __("Vender"), "btn-primary");
 					if (o.estado === "Reservada") {
 						acciones +=

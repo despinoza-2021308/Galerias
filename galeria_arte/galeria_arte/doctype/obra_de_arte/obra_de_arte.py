@@ -14,6 +14,7 @@ IVA = 0.12
 
 DISPONIBLE = "Disponible"
 RESERVADA = "Reservada"
+EN_SUBASTA = "En subasta"
 VENDIDA = "Vendida"
 DEVUELTA = "Devuelta al artista"
 
@@ -41,6 +42,8 @@ class ObradeArte(Document):
 			frappe.throw(_("La obra ya se vendió en la factura {0}; no se puede eliminar.").format(self.factura))
 		if frappe.db.exists("Reservacion de Obra", {"obra": self.name}):
 			frappe.throw(_("La obra tiene reservaciones registradas; no se puede eliminar."))
+		if frappe.db.exists("Evento Lote", {"obra": self.name}):
+			frappe.throw(_("La obra está registrada en una subasta; no se puede eliminar."))
 		if self.articulo and not frappe.db.exists("Sales Invoice Item", {"item_code": self.articulo}):
 			for precio in frappe.get_all("Item Price", filters={"item_code": self.articulo}, pluck="name"):
 				frappe.delete_doc("Item Price", precio, force=1, ignore_permissions=True)

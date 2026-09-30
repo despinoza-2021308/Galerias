@@ -2,7 +2,8 @@
 // For license information, please see license.txt
 
 // Ficha del coleccionista: todo lo de un cliente en un solo lugar
-// (obras compradas y reservadas, facturas, saldo y artistas de interés).
+// (obras compradas, reservadas y ganadas en subasta, facturas, saldo y
+// artistas de interés).
 
 frappe.pages["ficha-coleccionista"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Ficha del Coleccionista"), single_column: true });
@@ -38,6 +39,8 @@ class FichaColeccionista {
 			if (accion === "abonar") galeria.obras.abonar(id, null, recargar);
 			if (accion === "recibo") galeria.obras.imprimir("Reservacion de Obra", id, "Recibo de Reserva");
 			if (accion === "cliente") frappe.set_route("Form", "Customer", id);
+			if (accion === "cobrar-subasta") galeria.eventos.cobrar_subasta($el.attr("data-evento"), id, recargar);
+			if (accion === "subasta") galeria.eventos.resumen(id, recargar);
 		});
 		this.vacio();
 		this.leer_ruta();
@@ -127,6 +130,36 @@ class FichaColeccionista {
 					.join("")
 			: `<div class="col-sm-12 text-muted">${__("No tiene obras reservadas.")}</div>`;
 
+		const subastas = (r.subastas || []).length
+			? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
+				<thead><tr><th>${__("Obra")}</th><th>${__("Subasta")}</th><th class="text-right">${__("Precio ganador")}</th>
+				<th>${__("Estado")}</th><th></th></tr></thead><tbody>` +
+			  r.subastas
+					.map((x) => {
+						const [etiqueta, color] = galeria.eventos.RESULTADOS_SUBASTA[x.resultado] || [x.resultado, "gray"];
+						let detalle = "";
+						if (x.resultado === "Adjudicada") detalle = galeria.eventos.plazo_pago(x.fecha_limite_pago, x.dias_restantes);
+						if (x.resultado === "Vencida")
+							detalle = `<span class="text-danger">${__("Ganó y no pagó antes del {0}", [frappe.datetime.str_to_user(x.fecha_limite_pago)])}</span>`;
+						if (x.resultado === "Pagada" && x.factura)
+							detalle = `<a href="/app/sales-invoice/${encodeURIComponent(x.factura)}">${esc(x.factura)}</a>`;
+						return `<tr>
+							<td><a href="#" data-accion="obra" data-id="${esc(x.obra)}">${esc(x.titulo || x.obra)}</a><span class="gal-sub">${esc(x.artista || "")}</span></td>
+							<td><a href="#" data-accion="subasta" data-id="${esc(x.evento)}">${esc(x.subasta)}</a>
+								<span class="gal-sub">${frappe.datetime.str_to_user(String(x.inicio || "").slice(0, 10))}</span></td>
+							<td class="text-right">${m(x.precio_ganador)}</td>
+							<td><span class="indicator-pill ${color}">${etiqueta}</span>${detalle ? `<span class="gal-sub">${detalle}</span>` : ""}</td>
+							<td class="text-right">${
+								x.resultado === "Adjudicada"
+									? `<button class="btn btn-xs btn-primary" data-accion="cobrar-subasta" data-id="${esc(x.lote)}" data-evento="${esc(x.evento)}">${__("Cobrar")}</button>`
+									: ""
+							}</td>
+						</tr>`;
+					})
+					.join("") +
+			  `</tbody></table></div>`
+			: "";
+
 		const estados = { Paid: [__("Pagada"), "green"], Unpaid: [__("Pendiente"), "orange"], "Partly Paid": [__("Pago parcial"), "yellow"], Overdue: [__("Vencida"), "red"] };
 		const facturas = r.facturas.length
 			? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
@@ -160,6 +193,15 @@ class FichaColeccionista {
 						<div class="text-muted">${esc(c.galeria_tipo_cliente || __("Sin tipo"))} · NIT ${esc(c.tax_id || "CF")}
 							${c.mobile_no ? " · " + esc(c.mobile_no) : ""}${c.email_id ? " · " + esc(c.email_id) : ""}</div>
 						<div style="margin-top: 8px"><span class="text-muted small">${__("Artistas de interés")}:</span> ${artistas}</div>
+						${
+							t.subastas_sin_pagar
+								? `<div style="margin-top: 8px"><span class="indicator-pill red">${
+										t.subastas_sin_pagar === 1
+											? __("Ganó 1 subasta y no pagó")
+											: __("Ganó {0} subastas y no pagó", [t.subastas_sin_pagar])
+								  }</span></div>`
+								: ""
+						}
 					</div>
 					<div>${btn("cliente", c.name, __("Abrir cliente"))}</div>
 				</div>
@@ -173,6 +215,7 @@ class FichaColeccionista {
 			<div class="text-muted small" style="margin-top: 4px">
 				${__("Arte")}: <b>${m(t.por_area["Arte"])}</b> · ${__("Eventos")}: <b>${m(t.por_area["Eventos"])}</b> · ${__("Cafetería")}: <b>${m(t.por_area["Cafetería"])}</b>
 			</div>
+			${subastas ? titulo(__("Subastas ganadas")) + subastas : ""}
 			${titulo(__("Obras reservadas"))}<div class="row">${reservadas}</div>
 			${titulo(__("Obras compradas"))}<div class="row">${compradas}</div>
 			${titulo(__("Facturas"))}${facturas}`);

@@ -12,6 +12,7 @@ from galeria_arte.api.facturacion import FEL_CERTIFICADA, _prefijo_serie, get_co
 from galeria_arte.galeria_arte.doctype.obra_de_arte.obra_de_arte import (
 	DEVUELTA,
 	DISPONIBLE,
+	EN_SUBASTA,
 	RESERVADA,
 	VENDIDA,
 )
@@ -33,6 +34,7 @@ def _filas_de_obras(doc):
 			filters={"articulo": ["in", codigos]},
 			fields=[
 				"name", "articulo", "titulo", "estado", "reservada_por", "reservacion", "factura", "monto_artista",
+				"subasta",
 			],
 		)
 	}
@@ -57,6 +59,10 @@ def validar_factura(doc, method=None):
 			frappe.throw(_("La obra {0} fue devuelta al artista.").format(obra.titulo))
 		if obra.estado == RESERVADA and obra.reservada_por != doc.customer:
 			frappe.throw(_("La obra {0} está reservada por {1}.").format(obra.titulo, obra.reservada_por))
+		if obra.estado == EN_SUBASTA and doc.get("galeria_evento") != obra.subasta:
+			frappe.throw(
+				_("La obra {0} está en la subasta {1}: se cobra desde esa subasta.").format(obra.titulo, obra.subasta)
+			)
 		row.galeria_obra = obra.name
 		if obra.estado == RESERVADA and obra.reservacion and not doc.get("galeria_reservacion"):
 			doc.galeria_reservacion = obra.reservacion
@@ -170,11 +176,12 @@ def catalogo(
 		fields=[
 			"name", "titulo", "artista", "tecnica", "anio", "estado", "imagen", "precio_venta",
 			"alto_cm", "ancho_cm", "reservacion", "reservada_por", "fecha_limite_reserva", "anticipo", "cliente",
+			"subasta",
 		],
 		order_by="titulo asc",
 		limit_page_length=500,
 	)
-	orden = {DISPONIBLE: 0, RESERVADA: 1, VENDIDA: 2, DEVUELTA: 3}
+	orden = {DISPONIBLE: 0, RESERVADA: 1, EN_SUBASTA: 2, VENDIDA: 3, DEVUELTA: 4}
 	obras.sort(key=lambda o: orden.get(o.estado, 9))
 	hoy = getdate(nowdate())
 	for o in obras:
@@ -287,8 +294,25 @@ def ficha_coleccionista(cliente: str) -> dict:
 	)
 	anticipos_en_reservas = flt(sum(flt(o.anticipo) for o in reservadas), 2)
 
+	subastas = frappe.db.sql(
+		"""
+		SELECT l.name AS lote, l.parent AS evento, e.nombre AS subasta, e.inicio, l.obra, l.titulo, l.artista,
+			l.precio_ganador, l.resultado, l.fecha_limite_pago, l.factura, o.imagen
+		FROM `tabEvento Lote` l
+		JOIN `tabEvento` e ON e.name = l.parent AND l.parenttype = 'Evento'
+		LEFT JOIN `tabObra de Arte` o ON o.name = l.obra
+		WHERE l.comprador = %s AND l.resultado IN ('Adjudicada', 'Pagada', 'Vencida')
+		ORDER BY e.inicio DESC
+		""",
+		cliente,
+		as_dict=True,
+	)
+	for sub in subastas:
+		sub.dias_restantes = (getdate(sub.fecha_limite_pago) - hoy).days if sub.resultado == "Adjudicada" else None
+
 	return {
 		"cliente": c,
+		"subastas": subastas,
 		"obras_compradas": compradas,
 		"obras_reservadas": reservadas,
 		"reservaciones": historial,
@@ -299,6 +323,7 @@ def ficha_coleccionista(cliente: str) -> dict:
 			"por_area": por_area,
 			"anticipos_en_reservas": anticipos_en_reservas,
 			"saldo_a_favor": flt(max(saldo_a_favor - anticipos_en_reservas, 0), 2),
+			"subastas_sin_pagar": len([sub for sub in subastas if sub.resultado == "Vencida"]),
 		},
 	}
 

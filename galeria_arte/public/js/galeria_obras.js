@@ -17,6 +17,7 @@ galeria.obras.ganancia = function (precio, monto_artista) {
 galeria.obras.COLORES_ESTADO = {
 	Disponible: "green",
 	Reservada: "yellow",
+	"En subasta": "cyan",
 	Vendida: "gray",
 	"Devuelta al artista": "blue",
 };
@@ -378,7 +379,7 @@ galeria.obras.vender = async function (obra, on_done) {
 	resumen();
 };
 
-galeria.obras.venta_lista = function (r) {
+galeria.obras.venta_lista = function (r, al_cerrar) {
 	const m = galeria.pagos.moneda;
 	const d = new frappe.ui.Dialog({
 		title: __("Obra vendida"),
@@ -406,6 +407,7 @@ galeria.obras.venta_lista = function (r) {
 					: ""
 			}
 		</div>`);
+	if (al_cerrar) d.onhide = al_cerrar;
 	d.show();
 };
 

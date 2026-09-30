@@ -334,6 +334,9 @@ def vender(
 
 @frappe.whitelist()
 def panel() -> dict:
+	from galeria_arte.api.eventos import vencer_adjudicaciones
+
+	vencer_adjudicaciones()
 	conf = get_config()
 	hoy = getdate(nowdate())
 
@@ -381,7 +384,7 @@ def panel() -> dict:
 		filters=base,
 		fields=[
 			"name", "posting_date", "customer", "customer_name", "grand_total", "outstanding_amount", "status",
-			"payment_terms_template", "due_date", "galeria_reservacion", "bfel_status", "bfel_uuid",
+			"payment_terms_template", "due_date", "galeria_reservacion", "galeria_evento", "bfel_status", "bfel_uuid",
 		],
 		order_by="posting_date desc, name desc",
 		limit_page_length=300,
@@ -401,12 +404,31 @@ def panel() -> dict:
 		v.obras = obras_por_factura.get(v.name, [])
 		v.fel = "Certificada" if v.bfel_status == FEL_CERTIFICADA and v.bfel_uuid else "Pendiente de certificar"
 
+	# Obras ganadas en subasta: por pagar (7 días, al contado), pagadas o vencidas.
+	subastas = frappe.db.sql(
+		"""
+		SELECT l.name AS lote, l.parent AS evento, e.nombre AS subasta, e.inicio, l.obra, l.titulo, l.artista,
+			l.precio_inicial, l.precio_ganador, l.comprador, l.comprador_nombre, l.resultado, l.fecha_limite_pago,
+			l.factura
+		FROM `tabEvento Lote` l
+		JOIN `tabEvento` e ON e.name = l.parent AND l.parenttype = 'Evento'
+		WHERE l.resultado IN ('Adjudicada', 'Pagada', 'Vencida')
+		ORDER BY FIELD(l.resultado, 'Adjudicada', 'Vencida', 'Pagada'), l.fecha_limite_pago ASC, e.inicio DESC
+		LIMIT 300
+		""",
+		as_dict=True,
+	)
+	for sub in subastas:
+		sub.dias_restantes = date_diff(sub.fecha_limite_pago, hoy) if sub.resultado == "Adjudicada" else None
+	por_pagar = [sub for sub in subastas if sub.resultado == "Adjudicada"]
+
 	activas = [r for r in reservaciones if r.estado == ACTIVA]
 	mes = get_first_day(hoy)
 	return {
 		"obras": disponibles,
 		"reservaciones": reservaciones,
 		"ventas": ventas,
+		"subastas": subastas,
 		"totales": {
 			"vendido_mes": flt(sum(v.grand_total for v in ventas if getdate(v.posting_date) >= mes), 2),
 			"ventas_mes": len([v for v in ventas if getdate(v.posting_date) >= mes]),
@@ -414,5 +436,7 @@ def panel() -> dict:
 			"anticipos_reservas": flt(sum(flt(r.total_abonado) for r in activas), 2),
 			"reservas_vencidas": len([r for r in activas if r.vencida]),
 			"por_cobrar": flt(sum(flt(v.outstanding_amount) for v in ventas), 2),
+			"subastas_por_pagar": len(por_pagar),
+			"subastas_por_vencer": len([sub for sub in por_pagar if sub.dias_restantes <= 2]),
 		},
 	}

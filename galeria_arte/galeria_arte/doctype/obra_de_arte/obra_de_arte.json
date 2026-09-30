@@ -27,6 +27,8 @@
   "descripcion",
   "section_fotos",
   "fotos",
+  "section_subasta",
+  "subasta",
   "section_reserva",
   "reservacion",
   "reservada_por",
@@ -80,7 +82,7 @@
    "fieldname": "estado",
    "fieldtype": "Select",
    "label": "Estado",
-   "options": "Disponible\nReservada\nVendida\nDevuelta al artista",
+   "options": "Disponible\nReservada\nEn subasta\nVendida\nDevuelta al artista",
    "default": "Disponible",
    "in_list_view": 1,
    "in_standard_filter": 1,
@@ -187,6 +189,19 @@
    "fieldtype": "Table",
    "label": "Fotos",
    "options": "Obra de Arte Foto"
+  },
+  {
+   "fieldname": "section_subasta",
+   "fieldtype": "Section Break",
+   "label": "Subasta",
+   "depends_on": "eval:doc.subasta"
+  },
+  {
+   "fieldname": "subasta",
+   "fieldtype": "Link",
+   "label": "Subasta",
+   "options": "Evento",
+   "read_only": 1
   },
   {
    "fieldname": "section_reserva",
@@ -316,7 +331,7 @@
    "link_fieldname": "obra"
   }
  ],
- "modified": "2026-09-30 19:00:00.000000",
+ "modified": "2026-09-30 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Obra de Arte",
