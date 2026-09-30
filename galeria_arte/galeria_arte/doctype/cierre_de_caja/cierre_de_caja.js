@@ -8,7 +8,9 @@ frappe.ui.form.on("Cierre de Caja", {
 		}
 		frm.set_intro(
 			frm.doc.docstatus === 0
-				? __("Ingrese lo contado en caja por cada forma de pago y valide para cerrar el día.")
+				? __(
+						"Cuente el efectivo y escríbalo en Contado. Tarjeta, transferencia y cheque se llenan solos con lo registrado: cámbielos solo si no coinciden con los vouchers o el banco. Luego valide para cerrar el día."
+				  )
 				: ""
 		);
 	},
@@ -22,6 +24,10 @@ frappe.ui.form.on("Cierre de Caja", {
 frappe.ui.form.on("Cierre de Caja Pago", {
 	contado(frm, cdt, cdn) {
 		const row = locals[cdt][cdn];
+		// Si el cajero corrige una tarjeta o transferencia, se respeta al recalcular.
+		if (!row.es_efectivo && !row.contado_manual && flt(row.contado) !== flt(row.esperado)) {
+			frappe.model.set_value(cdt, cdn, "contado_manual", 1);
+		}
 		frappe.model.set_value(cdt, cdn, "diferencia", flt(row.contado) - flt(row.esperado));
 		const total_contado = (frm.doc.pagos || []).reduce((s, p) => s + flt(p.contado), 0);
 		frm.set_value("total_contado", total_contado);

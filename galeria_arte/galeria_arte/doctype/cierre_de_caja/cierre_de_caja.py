@@ -33,7 +33,10 @@ class CierredeCaja(Document):
 	def calcular(self):
 		"""Recalcula lo esperado desde los pagos y facturas del día. Conserva
 		lo contado que el cajero ya haya ingresado."""
-		contado = {p.modo_pago: flt(p.contado) for p in self.pagos}
+		# Lo que el cajero ya escribió: el efectivo siempre, y tarjeta o transferencia
+		# solo si las corrigió a mano (si no, se vuelven a llenar con lo registrado).
+		contado = {p.modo_pago: flt(p.contado) for p in self.pagos if p.es_efectivo or p.contado_manual}
+		manual = {p.modo_pago for p in self.pagos if p.contado_manual}
 
 		facturas = frappe.db.sql(
 			"""
@@ -79,9 +82,13 @@ class CierredeCaja(Document):
 			modos.setdefault(modo, frappe._dict(num=0, ingresos=0.0, egresos=0.0))
 
 		self.set("pagos", [])
-		for modo in sorted(modos, key=lambda m: m or ""):
+		for modo in sorted(modos, key=lambda m: (not es_efectivo(m), m or "")):
 			fila = modos[modo]
 			esperado = flt(fila.ingresos - fila.egresos, 2)
+			efectivo = es_efectivo(modo)
+			# El efectivo se cuenta a mano; tarjeta, transferencia y cheque se llenan
+			# con lo registrado y el cajero solo los corrige si no coinciden.
+			valor = contado.get(modo, 0) if (efectivo or modo in manual) else esperado
 			self.append(
 				"pagos",
 				{
@@ -90,8 +97,10 @@ class CierredeCaja(Document):
 					"ingresos": flt(fila.ingresos, 2),
 					"egresos": flt(fila.egresos, 2),
 					"esperado": esperado,
-					"contado": contado.get(modo, 0),
-					"diferencia": flt(contado.get(modo, 0) - esperado, 2),
+					"contado": valor,
+					"diferencia": flt(valor - esperado, 2),
+					"es_efectivo": 1 if efectivo else 0,
+					"contado_manual": 1 if modo in manual else 0,
 				},
 			)
 
@@ -100,3 +109,8 @@ class CierredeCaja(Document):
 		self.total_esperado = flt(sum(flt(p.esperado) for p in self.pagos), 2)
 		self.total_contado = flt(sum(flt(p.contado) for p in self.pagos), 2)
 		self.diferencia = flt(self.total_contado - self.total_esperado, 2)
+
+
+def es_efectivo(modo_pago: str | None) -> bool:
+	"""Formas de pago de tipo Caja (efectivo): son las que se cuentan en el cajón."""
+	return bool(modo_pago) and frappe.get_cached_value("Mode of Payment", modo_pago, "type") == "Cash"

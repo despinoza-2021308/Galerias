@@ -10,7 +10,9 @@
   "egresos",
   "esperado",
   "contado",
-  "diferencia"
+  "diferencia",
+  "es_efectivo",
+  "contado_manual"
  ],
  "fields": [
   {
@@ -67,10 +69,25 @@
    "in_list_view": 1,
    "read_only": 1,
    "columns": 1
+  },
+  {
+   "fieldname": "es_efectivo",
+   "fieldtype": "Check",
+   "label": "Se cuenta en caja",
+   "read_only": 1,
+   "hidden": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "contado_manual",
+   "fieldtype": "Check",
+   "label": "Contado escrito a mano",
+   "hidden": 1,
+   "default": "0"
   }
  ],
  "links": [],
- "modified": "2026-09-30 19:30:00.000000",
+ "modified": "2026-09-30 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Cierre de Caja Pago",
