@@ -4,7 +4,8 @@
 """Eventos de la galería y calendario de salas.
 
 - Exposición, Cena y Subasta los organiza la galería (Planificado → Publicado
-  → Realizado / Cancelado). Las exposiciones no bloquean sala.
+  → Realizado / Cancelado). Todos los eventos ocupan su sala, también las
+  exposiciones mientras duran.
 - Los boletos de cena se pagan al reservar y descuentan el cupo.
 - Alquiler (lo pide un cliente): Tentativo (vence si no deja anticipo) →
   Confirmado con anticipo → abonos hasta completar → Liquidado (factura pagada)

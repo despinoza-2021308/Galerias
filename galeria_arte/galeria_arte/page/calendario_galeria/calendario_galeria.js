@@ -50,7 +50,6 @@ class CalendarioGaleria {
 		$(`<div class="cal-gal-leyenda">
 			${Object.keys(col).map((t) => `<span><span class="muestra" style="background:${col[t]}"></span>${__(t)}</span>`).join("")}
 			<span><span class="muestra tentativo"></span>${__("Alquiler tentativo (sin anticipo)")}</span>
-			<span>${__("Las exposiciones no ocupan la sala")}</span>
 		</div>`).appendTo(page.main);
 		this.$cal = $(`<div class="cal-gal"></div>`).appendTo(page.main);
 		this.armar();

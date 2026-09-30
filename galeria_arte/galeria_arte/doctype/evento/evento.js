@@ -66,6 +66,6 @@ function mostrar_aviso(frm) {
 	} else if (d.tipo === "Cena") {
 		frm.set_intro(__("{0} de {1} lugares vendidos.", [cint(d.lugares_vendidos), cint(d.cupo)]), "blue");
 	} else if (d.tipo === "Exposición") {
-		frm.set_intro(__("Las exposiciones no ocupan la sala: puede haber cenas o alquileres en la misma sala."), "blue");
+		frm.set_intro(__("La exposición ocupa la sala mientras dure: no se pueden programar otros eventos en ella."), "blue");
 	}
 }

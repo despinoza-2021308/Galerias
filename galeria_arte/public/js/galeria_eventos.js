@@ -124,7 +124,7 @@ galeria.eventos.nuevo = async function (opciones = {}, on_done) {
 	};
 	d.fields_dict.nota.$wrapper.html(
 		`<div class="text-muted small">${__(
-			"Alquiler: queda Tentativo y aparta la fecha unos días; se confirma con un anticipo. Exposición: no bloquea la sala."
+			"Alquiler: queda Tentativo y aparta la fecha unos días; se confirma con un anticipo. Exposición: ocupa la sala todos los días que dure."
 		)}</div>`
 	);
 	d.fields_dict.tipo.$input.on("change", poner_precio);

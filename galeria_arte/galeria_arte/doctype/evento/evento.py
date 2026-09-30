@@ -13,8 +13,8 @@ CENA = "Cena"
 SUBASTA = "Subasta"
 ALQUILER = "Alquiler"
 
-# Tipos que ocupan la sala: no pueden coincidir entre sí. Las exposiciones no bloquean.
-BLOQUEAN_SALA = (CENA, SUBASTA, ALQUILER)
+# Todos los tipos ocupan su sala: dos eventos no pueden coincidir en la misma sala.
+BLOQUEAN_SALA = (EXPOSICION, CENA, SUBASTA, ALQUILER)
 INACTIVOS = ("Cancelado", "Vencido")
 
 GRUPO_BOLETOS = "Boletos de Evento"
@@ -109,9 +109,11 @@ class Evento(Document):
 		if choque:
 			c = choque[0]
 			lugar = _("todo el espacio") if c.todo_el_espacio else c.sala
+			# Si termina otro día (p. ej. una exposición), se muestra también la fecha de fin.
+			formato_fin = "HH:mm" if getdate(c.inicio) == getdate(c.fin) else "dd-MM-yyyy HH:mm"
 			frappe.throw(
 				_("Choque de horario: {0} ya está ocupado por {1} ({2}) de {3} a {4}.").format(
-					lugar, c.nombre, c.name, format_datetime(c.inicio, "dd-MM-yyyy HH:mm"), format_datetime(c.fin, "HH:mm")
+					lugar, c.nombre, c.name, format_datetime(c.inicio, "dd-MM-yyyy HH:mm"), format_datetime(c.fin, formato_fin)
 				),
 				title=_("Sala ocupada"),
 			)
