@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate, nowdate
 
-from galeria_arte.api.facturacion import FEL_CERTIFICADA, _prefijo_serie, get_config
+from galeria_arte.api.facturacion import FEL_CERTIFICADA, _prefijo_serie, get_config, resumen_cuotas
 from galeria_arte.galeria_arte.doctype.obra_de_arte.obra_de_arte import (
 	DEVUELTA,
 	DISPONIBLE,
@@ -261,13 +261,15 @@ def ficha_coleccionista(cliente: str) -> dict:
 			"name": ["like", f"{_prefijo_serie(conf.serie_factura)}%"],
 		},
 		fields=[
-			"name", "posting_date", "galeria_area", "grand_total", "outstanding_amount", "status",
+			"name", "posting_date", "due_date", "galeria_area", "grand_total", "outstanding_amount", "status",
 			"payment_terms_template", "bfel_status", "bfel_uuid",
 		],
 		order_by="posting_date desc, name desc",
 	)
+	cuotas = resumen_cuotas([f.name for f in facturas if f.payment_terms_template])
 	por_area = {"Arte": 0.0, "Eventos": 0.0, "Cafetería": 0.0}
 	for f in facturas:
+		f.cuotas = cuotas.get(f.name)
 		f.fel = "Certificada" if f.bfel_status == FEL_CERTIFICADA and f.bfel_uuid else "Pendiente de certificar"
 		if f.galeria_area in por_area:
 			por_area[f.galeria_area] = flt(por_area[f.galeria_area] + f.grand_total, 2)

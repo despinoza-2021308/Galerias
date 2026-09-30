@@ -121,7 +121,7 @@ class PagosArtistas {
 	}
 
 	tabla(encabezados, filas) {
-		return `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover" style="margin: 0">
+		return `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
 			<thead><tr>${encabezados}</tr></thead><tbody>${filas}</tbody></table></div>`;
 	}
 

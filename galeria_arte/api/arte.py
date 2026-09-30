@@ -25,6 +25,7 @@ from galeria_arte.api.facturacion import (
 	crear_factura,
 	get_config,
 	opciones_cobro,
+	resumen_cuotas,
 )
 from galeria_arte.galeria_arte.doctype.obra_de_arte.obra_de_arte import DISPONIBLE, RESERVADA
 
@@ -413,7 +414,9 @@ def panel() -> dict:
 			fields=["name", "titulo", "artista", "factura"],
 		):
 			obras_por_factura.setdefault(ob.factura, []).append(ob)
+	cuotas = resumen_cuotas([v.name for v in ventas if v.payment_terms_template])
 	for v in ventas:
+		v.cuotas = cuotas.get(v.name)
 		v.pagado = flt(v.grand_total - v.outstanding_amount, 2)
 		v.obras = obras_por_factura.get(v.name, [])
 		v.fel = "Certificada" if v.bfel_status == FEL_CERTIFICADA and v.bfel_uuid else "Pendiente de certificar"

@@ -254,9 +254,33 @@ def _crear_payment_entry(si, modo_pago: str, monto: float, referencia: str | Non
 	return pe.name
 
 
+def resumen_cuotas(facturas: list) -> dict:
+	"""Por factura con plan de cuotas: cuántas hay, cuántas van pagadas y la próxima."""
+	if not facturas:
+		return {}
+	filas = frappe.get_all(
+		"Payment Schedule",
+		filters={"parent": ["in", list(facturas)], "parenttype": "Sales Invoice"},
+		fields=["parent", "idx", "due_date", "payment_amount", "outstanding"],
+		order_by="parent asc, idx asc",
+	)
+	resumen = {}
+	for f in filas:
+		r = resumen.setdefault(f.parent, frappe._dict(total=0, pagadas=0, proxima_vence=None, proximo_monto=0))
+		r.total += 1
+		if flt(f.outstanding) <= 0.005:
+			r.pagadas += 1
+		elif not r.proxima_vence:
+			r.proxima_vence = f.due_date
+			r.proximo_monto = flt(f.outstanding)
+	return resumen
+
+
 @frappe.whitelist()
 def estado_factura(factura: str) -> dict:
 	si = frappe.get_doc("Sales Invoice", factura)
+	si.check_permission("read")
+	anticipos = {a.reference_name for a in si.advances if flt(a.allocated_amount) > 0}
 	pagos = frappe.db.sql(
 		"""
 		SELECT pe.name, pe.posting_date, pe.mode_of_payment, per.allocated_amount AS monto,
@@ -269,30 +293,53 @@ def estado_factura(factura: str) -> dict:
 		factura,
 		as_dict=True,
 	)
+	for p in pagos:
+		p.tipo = "Anticipo" if p.name in anticipos else "Pago"
+
+	hoy = getdate(nowdate())
+	cuotas, proxima = [], None
+	if si.payment_terms_template:
+		for c in si.payment_schedule:
+			pendiente = flt(c.outstanding)
+			if pendiente <= 0.005:
+				estado = "Pagada"
+			elif getdate(c.due_date) < hoy:
+				estado = "Vencida"
+			elif proxima is None:
+				estado = "Próxima"
+			else:
+				estado = "Pendiente"
+			if pendiente > 0.005 and proxima is None:
+				proxima = {"cuota": c.description or c.payment_term, "vence": c.due_date, "monto": pendiente}
+			cuotas.append(
+				{
+					"cuota": c.description or c.payment_term,
+					"vence": c.due_date,
+					"monto": c.payment_amount,
+					"pagado": c.paid_amount,
+					"pendiente": pendiente,
+					"estado": estado,
+				}
+			)
+
 	return {
 		"factura": si.name,
 		"cliente": si.customer_name,
 		"fecha": si.posting_date,
+		"vence": si.due_date,
 		"area": si.get("galeria_area"),
 		"total": si.grand_total,
+		"anticipo": flt(si.total_advance, 2),
 		"pagado": flt(si.grand_total - si.outstanding_amount, 2),
 		"pendiente": si.outstanding_amount,
 		"estado": si.status,
 		"fel": "Certificada" if si.get("bfel_status") == FEL_CERTIFICADA and si.get("bfel_uuid") else "Pendiente de certificar",
 		"fel_uuid": si.get("bfel_uuid"),
 		"plan_pagos": si.payment_terms_template,
-		"cuotas": [
-			{
-				"cuota": c.description or c.payment_term,
-				"vence": c.due_date,
-				"monto": c.payment_amount,
-				"pagado": c.paid_amount,
-				"pendiente": c.outstanding,
-			}
-			for c in si.payment_schedule
-		]
-		if si.payment_terms_template
-		else [],
+		"cuotas": cuotas,
+		"cuotas_total": len(cuotas),
+		"cuotas_pagadas": len([c for c in cuotas if c["estado"] == "Pagada"]),
+		"proxima": proxima,
 		"pagos": pagos,
 	}
 
@@ -323,7 +370,9 @@ def facturas_pendientes(cliente: str | None = None, area: str | None = None, ven
 		order_by="due_date asc, posting_date asc",
 	)
 	hoy = getdate(nowdate())
+	cuotas = resumen_cuotas([f.name for f in facturas if f.payment_terms_template])
 	for f in facturas:
+		f.cuotas = cuotas.get(f.name)
 		f.pagado = flt(f.grand_total - f.outstanding_amount, 2)
 		f.fel = "Certificada" if f.bfel_status == FEL_CERTIFICADA and f.bfel_uuid else "Pendiente de certificar"
 		proxima = frappe.db.get_value(
@@ -427,7 +476,9 @@ def ventas(
 		order_by="posting_date desc, name desc",
 		limit_page_length=500,
 	)
+	cuotas = resumen_cuotas([f.name for f in facturas if f.payment_terms_template])
 	for f in facturas:
+		f.cuotas = cuotas.get(f.name)
 		f.pagado = flt(f.grand_total - f.outstanding_amount, 2)
 		f.fel = "Certificada" if f.bfel_status == FEL_CERTIFICADA and f.bfel_uuid else "Pendiente de certificar"
 

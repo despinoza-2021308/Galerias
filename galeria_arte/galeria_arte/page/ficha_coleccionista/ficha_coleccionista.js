@@ -129,7 +129,7 @@ class FichaColeccionista {
 
 		const estados = { Paid: [__("Pagada"), "green"], Unpaid: [__("Pendiente"), "orange"], "Partly Paid": [__("Pago parcial"), "yellow"], Overdue: [__("Vencida"), "red"] };
 		const facturas = r.facturas.length
-			? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover" style="margin: 0">
+			? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
 				<thead><tr><th>${__("Factura")}</th><th>${__("Fecha")}</th><th>${__("Área")}</th><th>${__("Plan")}</th>
 				<th class="text-right">${__("Total")}</th><th class="text-right">${__("Pendiente")}</th><th>${__("Pago")}</th><th></th></tr></thead><tbody>` +
 			  r.facturas
@@ -139,7 +139,7 @@ class FichaColeccionista {
 							<td><a href="/app/sales-invoice/${encodeURIComponent(f.name)}">${esc(f.name)}</a></td>
 							<td>${frappe.datetime.str_to_user(f.posting_date)}</td>
 							<td>${esc(f.galeria_area || "")}</td>
-							<td>${esc(f.payment_terms_template || __("Contado"))}</td>
+							<td>${esc(galeria.pagos.texto_plan(f))}</td>
 							<td class="text-right">${m(f.grand_total)}</td>
 							<td class="text-right ${flt(f.outstanding_amount) ? "text-danger" : "text-muted"}">${m(f.outstanding_amount)}</td>
 							<td><span class="indicator-pill ${color}">${estado}</span></td>

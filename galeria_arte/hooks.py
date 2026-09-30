@@ -40,6 +40,7 @@ required_apps = ["erpnext", "brainfel"]
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/galeria_arte/css/galeria_arte.css"
+app_include_css = _con_version("css/galeria.css")
 app_include_js = [
 	_con_version("js/galeria_pagos.js"),
 	_con_version("js/galeria_obras.js"),

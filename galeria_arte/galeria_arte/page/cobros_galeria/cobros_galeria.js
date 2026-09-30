@@ -97,15 +97,15 @@ class CobrosGaleria {
 			<tr>
 				<td><a href="/app/sales-invoice/${encodeURIComponent(x.name)}">${x.name}</a>
 					<div class="text-muted small">${frappe.datetime.str_to_user(x.posting_date)}</div></td>
-				<td>${esc(x.customer_name || x.customer)}</td>
+				<td class="nowrap">${esc(x.customer_name || x.customer)}</td>
 				<td>${esc(x.galeria_area || "")}</td>
-				<td>${esc(x.payment_terms_template || __("Contado"))}</td>
+				<td>${esc(galeria.pagos.texto_plan(x))}</td>
 				<td class="text-right">${m(x.grand_total)}</td>
 				<td class="text-right text-success">${m(x.pagado)}</td>
 				<td class="text-right text-danger bold">${m(x.outstanding_amount)}</td>
 				<td class="${x.vencida ? "text-danger" : ""}">${frappe.datetime.str_to_user(x.proximo_vencimiento)}
 					<div class="small">${m(x.proximo_monto)}${x.vencida ? " · " + __("Vencida") : ""}</div></td>
-				<td><span class="indicator-pill ${x.fel === "Certificada" ? "green" : "orange"}">${x.fel}</span></td>
+				<td><span class="indicator-pill ${x.fel === "Certificada" ? "green" : "orange"}" title="FEL: ${x.fel}">${x.fel === "Certificada" ? __("Certificada") : __("Sin certificar")}</span></td>
 				<td class="text-right" style="white-space: nowrap">
 					<button class="btn btn-xs btn-default" data-estado="${x.name}">${__("Ver")}</button>
 					<button class="btn btn-xs btn-primary" data-cobrar="${x.name}">${__("Cobrar")}</button>
@@ -115,7 +115,7 @@ class CobrosGaleria {
 			.join("");
 		this.$tabla.html(`
 			<div class="frappe-card" style="overflow-x: auto">
-				<table class="table table-hover" style="margin: 0">
+				<table class="table table-hover gal-tabla" style="margin: 0">
 					<thead><tr>
 						<th>${__("Factura")}</th><th>${__("Cliente")}</th><th>${__("Área")}</th><th>${__("Plan")}</th>
 						<th class="text-right">${__("Total")}</th><th class="text-right">${__("Pagado")}</th>

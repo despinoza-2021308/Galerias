@@ -22,6 +22,29 @@ galeria.pagos.moneda = function (valor) {
 	return format_currency(valor || 0, "GTQ");
 };
 
+// Texto corto del plan de pago de una factura para las tablas:
+// "3 de 9 cuotas pagadas", "Abonos libres" o "Contado".
+galeria.pagos.texto_plan = function (f) {
+	const c = f.cuotas;
+	if (c && c.total) {
+		return __("{0} de {1} cuotas pagadas", [c.pagadas, c.total]);
+	}
+	if (flt(f.outstanding_amount) > 0) return __("Abonos libres");
+	return __("Contado");
+};
+
+// Detalle debajo del plan: próxima cuota o fecha límite de los abonos.
+galeria.pagos.detalle_plan = function (f) {
+	const c = f.cuotas;
+	if (c && c.proxima_vence) {
+		return __("Próxima: {0} · {1}", [frappe.datetime.str_to_user(c.proxima_vence), galeria.pagos.moneda(c.proximo_monto)]);
+	}
+	if (!(c && c.total) && flt(f.outstanding_amount) > 0 && f.due_date) {
+		return __("Pagar antes del {0}", [frappe.datetime.str_to_user(f.due_date)]);
+	}
+	return "";
+};
+
 // Diálogo para registrar uno o varios pagos contra una factura.
 galeria.pagos.registrar = async function (factura, on_done) {
 	const [estado, opciones] = await Promise.all([
@@ -32,65 +55,31 @@ galeria.pagos.registrar = async function (factura, on_done) {
 		frappe.msgprint(__("La factura {0} ya está pagada.", [factura]));
 		return;
 	}
-	const proxima = (estado.cuotas || []).find((c) => flt(c.pendiente) > 0);
-	const sugerido = proxima ? flt(proxima.pendiente) : flt(estado.pendiente);
-	const modo_default = opciones.modos_pago.includes("Efectivo") ? "Efectivo" : opciones.modos_pago[0];
+	const m = galeria.pagos.moneda;
+	const pendiente = flt(estado.pendiente);
+	const sugerido = estado.proxima ? Math.min(flt(estado.proxima.monto), pendiente) : pendiente;
+	let editor = null;
 
 	const d = new frappe.ui.Dialog({
 		title: __("Registrar pago · {0}", [factura]),
 		size: "large",
 		fields: [
 			{ fieldtype: "HTML", fieldname: "resumen" },
-			{
-				fieldtype: "Table",
-				fieldname: "pagos",
-				label: __("Pagos (puede combinar varias formas de pago)"),
-				cannot_add_rows: false,
-				in_place_edit: true,
-				data: [{ modo_pago: modo_default, monto: sugerido }],
-				fields: [
-					{
-						fieldtype: "Select",
-						fieldname: "modo_pago",
-						label: __("Forma de pago"),
-						options: opciones.modos_pago.join("\n"),
-						in_list_view: 1,
-						reqd: 1,
-						columns: 3,
-					},
-					{
-						fieldtype: "Currency",
-						fieldname: "monto",
-						label: __("Monto"),
-						in_list_view: 1,
-						reqd: 1,
-						columns: 3,
-					},
-					{
-						fieldtype: "Data",
-						fieldname: "referencia",
-						label: __("Referencia (boleta, voucher, transferencia)"),
-						in_list_view: 1,
-						columns: 4,
-					},
-				],
-			},
+			{ fieldtype: "Section Break", label: __("Pago de hoy") },
+			{ fieldtype: "HTML", fieldname: "rapidos" },
+			{ fieldtype: "HTML", fieldname: "pagos" },
+			{ fieldtype: "HTML", fieldname: "total" },
 		],
 		primary_action_label: __("Registrar pago"),
-		primary_action: async (values) => {
-			const pagos = (values.pagos || []).filter((p) => flt(p.monto) > 0);
-			const total = pagos.reduce((s, p) => s + flt(p.monto), 0);
+		primary_action: async () => {
+			const pagos = editor.leer();
+			const total = editor.total();
 			if (!pagos.length) {
 				frappe.msgprint(__("Ingrese al menos un pago."));
 				return;
 			}
-			if (flt(total, 2) > flt(estado.pendiente, 2)) {
-				frappe.msgprint(
-					__("El total ({0}) supera el saldo pendiente ({1}).", [
-						galeria.pagos.moneda(total),
-						galeria.pagos.moneda(estado.pendiente),
-					])
-				);
+			if (total > flt(pendiente, 2)) {
+				frappe.msgprint(__("El total ({0}) supera el saldo pendiente ({1}).", [m(total), m(pendiente)]));
 				return;
 			}
 			d.get_primary_btn().prop("disabled", true);
@@ -98,7 +87,7 @@ galeria.pagos.registrar = async function (factura, on_done) {
 				const r = await frappe.xcall(`${API}.registrar_pagos`, { factura, pagos });
 				d.hide();
 				frappe.show_alert({
-					message: __("Pago registrado. Saldo pendiente: {0}", [galeria.pagos.moneda(r.pendiente)]),
+					message: __("Pago registrado. Saldo pendiente: {0}", [m(r.pendiente)]),
 					indicator: "green",
 				});
 				on_done && on_done(r);
@@ -107,8 +96,37 @@ galeria.pagos.registrar = async function (factura, on_done) {
 			}
 		},
 	});
+
 	d.fields_dict.resumen.$wrapper.html(galeria.pagos.html_resumen(estado));
+	const rapidos = [];
+	if (estado.proxima) {
+		rapidos.push(`<button type="button" class="btn btn-default" data-monto-rapido="${sugerido}">
+			${__("Próxima cuota")} · ${m(sugerido)}</button>`);
+	}
+	rapidos.push(`<button type="button" class="btn btn-default" data-monto-rapido="${pendiente}">
+		${__("Todo el saldo")} · ${m(pendiente)}</button>`);
+	d.fields_dict.rapidos.$wrapper.html(`<div class="gal-rapidos">${rapidos.join("")}</div>`);
+
+	const actualizar = () => {
+		const total = editor ? editor.total() : 0;
+		const queda = flt(pendiente - total, 2);
+		d.fields_dict.total.$wrapper.html(`
+			<div class="gal-total-pago">
+				<span>${__("Pago de hoy")}: <b>${m(total)}</b></span>
+				<span class="${queda < 0 ? "text-danger" : ""}">${
+					queda < 0 ? __("Supera el saldo por {0}", [m(-queda)]) : __("Quedará pendiente: {0}", [m(queda)])
+				}</span>
+			</div>`);
+		d.get_primary_btn().prop("disabled", total <= 0 || queda < 0);
+	};
+
 	d.show();
+	editor = galeria.pagos.editor(d.fields_dict.pagos.$wrapper, opciones.modos_pago, actualizar);
+	editor.poner([{ monto: sugerido }]);
+	d.fields_dict.rapidos.$wrapper.on("click", "[data-monto-rapido]", (e) => {
+		editor.poner([{ monto: flt($(e.currentTarget).attr("data-monto-rapido")) }]);
+	});
+	actualizar();
 };
 
 // Diálogo de solo lectura con cuotas y pagos.
@@ -119,56 +137,90 @@ galeria.pagos.estado_cuenta = async function (factura) {
 		size: "large",
 		fields: [{ fieldtype: "HTML", fieldname: "html" }],
 	});
-	d.fields_dict.html.$wrapper.html(
-		galeria.pagos.html_resumen(estado) + galeria.pagos.html_pagos(estado)
-	);
+	d.fields_dict.html.$wrapper.html(galeria.pagos.html_resumen(estado) + galeria.pagos.html_pagos(estado));
 	d.show();
 };
 
+galeria.pagos.COLORES_CUOTA = { Pagada: "green", Próxima: "blue", Vencida: "red", Pendiente: "gray" };
+
 galeria.pagos.html_resumen = function (e) {
 	const m = galeria.pagos.moneda;
-	const fel_color = e.fel === "Certificada" ? "green" : "orange";
+	const esc = frappe.utils.escape_html;
+	const dato = (label, valor, clase = "") =>
+		`<div><div class="gal-dato-label">${label}</div><div class="gal-dato-valor ${clase}">${valor}</div></div>`;
 	let html = `
-		<div class="row" style="margin-bottom: var(--margin-md)">
-			<div class="col-sm-6">
-				<div class="text-muted small">${__("Cliente")}</div>
-				<div class="bold">${frappe.utils.escape_html(e.cliente || "")}</div>
-				<span class="indicator-pill ${fel_color}" style="margin-top: 6px">FEL: ${e.fel}</span>
+		<div class="gal-resumen">
+			<div>
+				<div class="gal-dato-label">${__("Cliente")}</div>
+				<div class="gal-dato-valor">${esc(e.cliente || "")}</div>
+				<span class="indicator-pill ${e.fel === "Certificada" ? "green" : "orange"}" style="margin-top: 6px">FEL: ${e.fel}</span>
 			</div>
-			<div class="col-sm-2"><div class="text-muted small">${__("Total")}</div><div class="bold">${m(e.total)}</div></div>
-			<div class="col-sm-2"><div class="text-muted small">${__("Pagado")}</div><div class="bold text-success">${m(e.pagado)}</div></div>
-			<div class="col-sm-2"><div class="text-muted small">${__("Pendiente")}</div><div class="bold text-danger">${m(e.pendiente)}</div></div>
+			${dato(__("Total"), m(e.total))}
+			${dato(__("Pagado"), m(e.pagado), "text-success")}
+			${dato(__("Pendiente"), m(e.pendiente), flt(e.pendiente) > 0 ? "text-danger" : "")}
 		</div>`;
-	if ((e.cuotas || []).length) {
-		html += `<div class="text-muted small" style="margin-bottom: 4px">${__("Plan de pagos")}: ${frappe.utils.escape_html(e.plan_pagos)}</div>
-			<table class="table table-bordered table-sm small">
+
+	// Desglose de lo pagado: anticipo y pagos posteriores.
+	const partes = [];
+	if (flt(e.anticipo) > 0) partes.push(`${__("Anticipo")}: <b>${m(e.anticipo)}</b>`);
+	const despues = flt(e.pagado) - flt(e.anticipo);
+	if (flt(e.anticipo) > 0 && despues > 0.005) partes.push(`${__("Pagos posteriores")}: <b>${m(despues)}</b>`);
+	if (!e.cuotas.length && flt(e.pendiente) > 0 && e.vence) {
+		partes.push(`${__("Abonos libres, pagar antes del")} <b>${frappe.datetime.str_to_user(e.vence)}</b>`);
+	}
+	if (partes.length) html += `<div class="gal-desglose">${partes.map((p) => `<span>${p}</span>`).join("")}</div>`;
+
+	if (e.cuotas.length) {
+		const faltan = e.cuotas_total - e.cuotas_pagadas;
+		const pct = e.cuotas_total ? Math.round((e.cuotas_pagadas / e.cuotas_total) * 100) : 0;
+		html += `
+			<div class="gal-progreso">
+				<div class="gal-progreso-texto">
+					<span><b>${__("{0} de {1} cuotas pagadas", [e.cuotas_pagadas, e.cuotas_total])}</b>${
+			faltan ? ` · ${faltan === 1 ? __("falta 1") : __("faltan {0}", [faltan])}` : ` · ${__("completo")}`
+		}</span>
+					<span class="text-muted">${esc(e.plan_pagos || "")}${
+			flt(e.anticipo) > 0 ? ` · ${__("calculadas sobre el saldo después del anticipo")}` : ""
+		}</span>
+				</div>
+				<div class="gal-progreso-barra"><div style="width: ${pct}%"></div></div>
+			</div>
+			<table class="gal-cuotas">
 				<thead><tr><th>${__("Cuota")}</th><th>${__("Vence")}</th><th class="text-right">${__("Monto")}</th>
-				<th class="text-right">${__("Pagado")}</th><th class="text-right">${__("Pendiente")}</th></tr></thead><tbody>`;
-		const hoy = frappe.datetime.get_today();
-		for (const c of e.cuotas) {
-			const vencida = flt(c.pendiente) > 0 && c.vence < hoy;
-			html += `<tr class="${vencida ? "text-danger" : ""}">
-				<td>${frappe.utils.escape_html(c.cuota || "")}</td>
-				<td>${frappe.datetime.str_to_user(c.vence)}${vencida ? " · " + __("Vencida") : ""}</td>
-				<td class="text-right">${m(c.monto)}</td><td class="text-right">${m(c.pagado)}</td>
-				<td class="text-right">${m(c.pendiente)}</td></tr>`;
-		}
-		html += `</tbody></table>`;
+					<th class="text-right">${__("Pagado")}</th><th class="text-right">${__("Pendiente")}</th><th>${__("Estado")}</th></tr></thead>
+				<tbody>${e.cuotas
+					.map(
+						(c) => `<tr class="${{ Pagada: "pagada", Próxima: "proxima", Vencida: "vencida" }[c.estado] || ""}">
+						<td>${esc(c.cuota || "")}</td>
+						<td>${frappe.datetime.str_to_user(c.vence)}</td>
+						<td class="text-right">${m(c.monto)}</td>
+						<td class="text-right">${m(c.pagado)}</td>
+						<td class="text-right">${flt(c.pendiente) > 0 ? m(c.pendiente) : "—"}</td>
+						<td><span class="indicator-pill ${galeria.pagos.COLORES_CUOTA[c.estado] || "gray"}">${c.estado === "Pagada" ? "✓ " : ""}${esc(c.estado)}</span></td>
+					</tr>`
+					)
+					.join("")}</tbody>
+			</table>`;
 	}
 	return html;
 };
 
 galeria.pagos.html_pagos = function (e) {
 	if (!(e.pagos || []).length) return `<p class="text-muted">${__("Sin pagos registrados.")}</p>`;
-	let html = `<div class="text-muted small" style="margin-bottom: 4px">${__("Pagos recibidos")}</div>
-		<table class="table table-bordered table-sm small"><thead><tr><th>${__("Pago")}</th><th>${__("Fecha")}</th>
-		<th>${__("Forma de pago")}</th><th>${__("Cuota")}</th><th class="text-right">${__("Monto")}</th></tr></thead><tbody>`;
-	for (const p of e.pagos) {
-		html += `<tr><td><a href="/app/payment-entry/${encodeURIComponent(p.name)}">${p.name}</a></td>
-			<td>${frappe.datetime.str_to_user(p.posting_date)}</td><td>${frappe.utils.escape_html(p.mode_of_payment || "")}</td>
-			<td>${frappe.utils.escape_html(p.cuota || "")}</td><td class="text-right">${galeria.pagos.moneda(p.monto)}</td></tr>`;
-	}
-	return html + `</tbody></table>`;
+	const esc = frappe.utils.escape_html;
+	return `<div class="gal-dato-label" style="margin-bottom: 4px">${__("Pagos recibidos")}</div>
+		<table class="gal-cuotas"><thead><tr><th>${__("Fecha")}</th><th>${__("Tipo")}</th><th>${__("Forma de pago")}</th>
+		<th>${__("Aplicado a")}</th><th class="text-right">${__("Monto")}</th><th>${__("Pago")}</th></tr></thead><tbody>${e.pagos
+			.map(
+				(p) => `<tr>
+			<td>${frappe.datetime.str_to_user(p.posting_date)}</td>
+			<td>${p.tipo === "Anticipo" ? `<span class="indicator-pill blue">${__("Anticipo")}</span>` : __("Pago")}</td>
+			<td>${esc(p.mode_of_payment || "")}</td>
+			<td>${esc(p.cuota || (p.tipo === "Anticipo" ? __("Antes de las cuotas") : __("Saldo")))}</td>
+			<td class="text-right">${galeria.pagos.moneda(p.monto)}</td>
+			<td><a href="/app/payment-entry/${encodeURIComponent(p.name)}">${esc(p.name)}</a></td></tr>`
+			)
+			.join("")}</tbody></table>`;
 };
 
 // Editor de pagos para diálogos: filas de forma de pago, monto y referencia.

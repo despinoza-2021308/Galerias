@@ -1,0 +1,131 @@
+/* Estilos compartidos de la galería (tablas y diálogos de cobro).
+   Usa las variables de tema de Frappe para claro y oscuro. */
+
+/* Tablas: montos, números y etiquetas en una sola línea */
+.gal-tabla th,
+.gal-tabla td {
+	vertical-align: middle;
+}
+.gal-tabla th.text-right,
+.gal-tabla td.text-right,
+.gal-tabla td:first-child,
+.gal-tabla .indicator-pill,
+.gal-tabla .nowrap {
+	white-space: nowrap;
+}
+.gal-tabla .gal-sub {
+	display: block;
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	white-space: nowrap;
+}
+
+/* Resumen de una factura en los diálogos */
+.gal-resumen {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+	gap: var(--margin-md);
+	margin-bottom: var(--margin-md);
+}
+.gal-resumen .gal-dato-label {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.gal-resumen .gal-dato-valor {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	color: var(--text-color);
+	white-space: nowrap;
+}
+.gal-desglose {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 18px;
+	padding: 8px 12px;
+	margin-bottom: var(--margin-md);
+	border-radius: var(--border-radius);
+	background: var(--control-bg);
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+.gal-desglose b {
+	color: var(--text-color);
+}
+
+/* Progreso de cuotas */
+.gal-progreso {
+	margin-bottom: var(--margin-sm);
+}
+.gal-progreso-texto {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--margin-sm);
+	font-size: var(--text-md);
+	margin-bottom: 6px;
+}
+.gal-progreso-barra {
+	height: 8px;
+	border-radius: 4px;
+	background: var(--gray-200);
+	overflow: hidden;
+}
+.gal-progreso-barra > div {
+	height: 100%;
+	background: var(--green-500);
+}
+
+/* Tabla de cuotas */
+.gal-cuotas {
+	width: 100%;
+	font-size: var(--text-md);
+	margin-bottom: var(--margin-md);
+}
+.gal-cuotas th {
+	color: var(--text-muted);
+	font-weight: 500;
+	font-size: var(--text-sm);
+	padding: 6px 8px;
+	border-bottom: 1px solid var(--border-color);
+}
+.gal-cuotas td {
+	padding: 7px 8px;
+	border-bottom: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+.gal-cuotas tr.pagada td {
+	color: var(--text-muted);
+}
+.gal-cuotas tr.proxima td {
+	background: var(--control-bg);
+	font-weight: 600;
+}
+.gal-cuotas tr.vencida td {
+	color: var(--red-600, #c0392b);
+}
+
+/* Botones rápidos de monto */
+.gal-rapidos {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--margin-sm);
+	margin-bottom: var(--margin-sm);
+}
+.gal-rapidos .btn {
+	min-height: 38px;
+}
+.gal-total-pago {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--margin-md);
+	margin-top: var(--margin-sm);
+	font-size: var(--text-md);
+}
+
+@media (max-width: 767px) {
+	.gal-resumen {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.gal-resumen > :first-child {
+		grid-column: 1 / -1;
+	}
+}

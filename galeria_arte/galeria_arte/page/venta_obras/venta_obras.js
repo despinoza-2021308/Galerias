@@ -20,13 +20,6 @@ frappe.pages["venta-obras"].on_page_show = function (wrapper) {
 	vo.visto = true;
 };
 
-const VO_ESTADOS_PAGO = {
-	Paid: [__("Pagada"), "green"],
-	Unpaid: [__("Pendiente"), "orange"],
-	"Partly Paid": [__("Pago parcial"), "yellow"],
-	Overdue: [__("Vencida"), "red"],
-};
-
 class VentaObras {
 	constructor(page) {
 		this.page = page;
@@ -254,7 +247,7 @@ class VentaObras {
 			</div>
 			${
 				lista.length
-					? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover" style="margin: 0">
+					? `<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
 						<thead><tr><th>${__("Reservación")}</th><th>${__("Obra")}</th><th>${__("Cliente")}</th>
 						<th class="text-right">${__("Precio")}</th><th class="text-right">${__("Abonado")}</th>
 						<th class="text-right">${__("Saldo")}</th><th>${__("Estado")}</th><th>${__("Reservada hasta / cierre")}</th><th></th></tr></thead>
@@ -279,26 +272,21 @@ class VentaObras {
 			`<button class="btn btn-xs ${clase}" data-accion="${accion}" data-id="${esc(id)}">${texto}</button>`;
 		const filas = ventas
 			.map((v) => {
-				const [estado, color] = VO_ESTADOS_PAGO[v.status] || [v.status, "gray"];
 				const obras = v.obras.length
-					? v.obras.map((o) => `${esc(o.titulo)} <span class="text-muted small">· ${esc(o.artista)}</span>`).join("<br>")
+					? v.obras.map((o) => `<span class="nowrap">${esc(o.titulo)}</span><span class="gal-sub">${esc(o.artista)}</span>`).join("")
 					: `<span class="text-muted">—</span>`;
-				const forma = v.payment_terms_template
-					? esc(v.payment_terms_template)
-					: flt(v.outstanding_amount) > 0
-					? `${__("Abonos libres")}<div class="text-muted small">${__("antes del")} ${frappe.datetime.str_to_user(v.due_date)}</div>`
-					: __("Pagada");
+				const detalle = galeria.pagos.detalle_plan(v);
+				const forma = `${esc(galeria.pagos.texto_plan(v))}${detalle ? `<span class="gal-sub">${esc(detalle)}</span>` : ""}`;
 				return `
 				<tr>
 					<td><a href="/app/sales-invoice/${encodeURIComponent(v.name)}">${esc(v.name)}</a>
 						<div class="text-muted small">${frappe.datetime.str_to_user(v.posting_date)}</div></td>
 					<td>${obras}${v.galeria_reservacion ? `<div class="text-muted small">${__("Reserva")} ${esc(v.galeria_reservacion)}</div>` : ""}</td>
-					<td>${esc(v.customer_name || v.customer)}</td>
+					<td class="nowrap">${esc(v.customer_name || v.customer)}</td>
 					<td>${forma}</td>
 					<td class="text-right">${m(v.grand_total)}</td>
 					<td class="text-right text-success">${m(v.pagado)}</td>
 					<td class="text-right ${flt(v.outstanding_amount) ? "text-danger" : "text-muted"}">${m(v.outstanding_amount)}</td>
-					<td><span class="indicator-pill ${color}">${estado}</span></td>
 					<td class="vo-acciones-fila">
 						${flt(v.outstanding_amount) > 0 ? btn("cobrar", v.name, __("Cobrar"), "btn-primary") : ""}
 						${btn("estado", v.name, __("Estado de cuenta"))}
@@ -308,10 +296,10 @@ class VentaObras {
 			})
 			.join("");
 		this.$cuerpo.html(`
-			<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover" style="margin: 0">
-				<thead><tr><th>${__("Factura")}</th><th>${__("Obra")}</th><th>${__("Cliente")}</th><th>${__("Saldo se paga con")}</th>
+			<div class="frappe-card" style="overflow-x: auto"><table class="table table-hover gal-tabla" style="margin: 0">
+				<thead><tr><th>${__("Factura")}</th><th>${__("Obra")}</th><th>${__("Cliente")}</th><th>${__("Plan de pago")}</th>
 				<th class="text-right">${__("Total")}</th><th class="text-right">${__("Pagado")}</th>
-				<th class="text-right">${__("Saldo")}</th><th>${__("Pago")}</th><th></th></tr></thead>
+				<th class="text-right">${__("Saldo")}</th><th></th></tr></thead>
 				<tbody>${filas}</tbody></table></div>`);
 	}
 }
