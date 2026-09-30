@@ -1,0 +1,298 @@
+.tab-gal {
+	padding-bottom: var(--padding-xl);
+}
+
+.tab-periodo {
+	margin: 0 0 var(--margin-md);
+	font-size: var(--text-sm);
+}
+
+.tab-nota {
+	font-size: var(--text-sm);
+	margin-top: var(--margin-sm);
+}
+
+/* Tarjetas de resumen */
+.tab-tarjetas {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--margin-md);
+}
+
+.tab-tarjeta {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--padding-md);
+}
+
+.tab-clic {
+	cursor: pointer;
+}
+
+.tab-tarjeta.tab-clic:hover,
+.tab-inventario.tab-clic:hover {
+	border-color: var(--gray-400);
+}
+
+.tab-tarjeta-label {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+.tab-tarjeta-valor {
+	font-size: var(--text-2xl);
+	font-weight: 600;
+	margin: 4px 0 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.tab-tarjeta-sub {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+/* Secciones y cajas */
+.tab-seccion {
+	margin-top: var(--margin-xl);
+}
+
+.tab-seccion-titulo {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	margin-bottom: var(--margin-sm);
+}
+
+.tab-seccion-titulo .text-muted {
+	font-size: var(--text-sm);
+	font-weight: 400;
+}
+
+.tab-fila {
+	display: grid;
+	gap: var(--margin-md);
+	margin-top: var(--margin-md);
+}
+
+.tab-fila-1-1 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tab-fila-1-2 {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+.tab-fila-2-1 {
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.tab-caja {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--padding-md);
+	min-width: 0;
+	overflow-x: auto;
+}
+
+.tab-seccion > .tab-caja {
+	margin-top: var(--margin-md);
+}
+
+.tab-caja-titulo {
+	font-weight: 600;
+	margin-bottom: var(--margin-sm);
+}
+
+.tab-vacio {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	padding: var(--padding-md) 0;
+	text-align: center;
+}
+
+/* Datos sueltos de cada sección */
+.tab-datos {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--margin-sm) var(--margin-xl);
+	background: var(--subtle-fg);
+	border-radius: var(--border-radius-lg);
+	padding: var(--padding-sm) var(--padding-md);
+}
+
+.tab-datos-compactos {
+	background: none;
+	padding: 0;
+	gap: var(--margin-sm) var(--margin-lg);
+	margin-bottom: var(--margin-sm);
+}
+
+.tab-dato-label {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+}
+
+.tab-dato-valor {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+/* Tablas de ranking */
+.tab-tabla {
+	width: 100%;
+	font-size: var(--text-sm);
+}
+
+.tab-tabla th {
+	color: var(--text-muted);
+	font-weight: 500;
+	padding: 4px 6px;
+	border-bottom: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.tab-tabla td {
+	padding: 6px;
+	border-bottom: 1px solid var(--border-color);
+	vertical-align: middle;
+}
+
+.tab-tabla td.text-right {
+	white-space: nowrap;
+}
+
+.tab-tabla tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.tab-tabla tr.tab-clic:hover td {
+	background: var(--subtle-fg);
+}
+
+.tab-sub {
+	display: block;
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+
+.tab-col-barra {
+	width: 28%;
+	min-width: 80px;
+}
+
+.tab-barra {
+	height: 8px;
+	border-radius: 4px;
+	background: var(--subtle-fg);
+	overflow: hidden;
+}
+
+.tab-barra > div {
+	height: 100%;
+	border-radius: 4px;
+}
+
+/* Leyendas, chips e inventario */
+.tab-leyenda {
+	display: grid;
+	gap: 4px;
+	font-size: var(--text-sm);
+	margin-top: var(--margin-sm);
+}
+
+.tab-leyenda > div {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.tab-leyenda b {
+	margin-left: auto;
+}
+
+.tab-leyenda .text-muted {
+	min-width: 44px;
+	text-align: right;
+}
+
+.tab-muestra {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 3px;
+	margin-right: 3px;
+	flex: none;
+}
+
+.tab-apilada {
+	display: flex;
+	height: 14px;
+	border-radius: 7px;
+	overflow: hidden;
+	background: var(--subtle-fg);
+}
+
+.tab-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.tab-chip {
+	background: var(--subtle-fg);
+	border-radius: var(--border-radius-full, 999px);
+	padding: 2px 10px;
+	font-size: var(--text-sm);
+}
+
+.tab-inventario {
+	display: grid;
+	gap: 6px;
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+}
+
+.tab-inv {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--text-sm);
+}
+
+.tab-inv b {
+	margin-left: auto;
+}
+
+.tab-inv .text-muted {
+	min-width: 90px;
+	text-align: right;
+}
+
+/* Celular y tablet */
+@media (max-width: 991px) {
+	.tab-tarjetas {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.tab-fila-1-2,
+	.tab-fila-2-1 {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@media (max-width: 575px) {
+	.tab-tarjetas {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.tab-fila-1-1 {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.tab-col-barra {
+		display: none;
+	}
+	.tab-tarjeta-valor {
+		font-size: var(--text-xl);
+	}
+}

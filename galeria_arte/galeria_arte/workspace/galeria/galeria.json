@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-calendario\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Calendario\", \"col\": 3}}, {\"id\": \"gal-sc-venta-obras\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Venta de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-catalogo\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Catálogo de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-pagos-artistas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pagos a Artistas\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-arte\", \"type\": \"card\", \"data\": {\"card_name\": \"Arte\", \"col\": 4}}, {\"id\": \"gal-card-eventos\", \"type\": \"card\", \"data\": {\"card_name\": \"Eventos\", \"col\": 4}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
+ "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-dashboard\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Dashboard\", \"col\": 3}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-calendario\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Calendario\", \"col\": 3}}, {\"id\": \"gal-sc-venta-obras\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Venta de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-catalogo\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Catálogo de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-pagos-artistas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pagos a Artistas\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-arte\", \"type\": \"card\", \"data\": {\"card_name\": \"Arte\", \"col\": 4}}, {\"id\": \"gal-card-eventos\", \"type\": \"card\", \"data\": {\"card_name\": \"Eventos\", \"col\": 4}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
  "creation": "2026-09-29 16:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -255,7 +255,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-30 21:00:00.000000",
+ "modified": "2026-10-01 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Galería",
@@ -268,6 +268,13 @@
  "roles": [],
  "sequence_id": 50.0,
  "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "",
+   "label": "Dashboard",
+   "link_to": "tablero-galeria",
+   "type": "Page"
+  },
   {
    "color": "Orange",
    "doc_view": "",
