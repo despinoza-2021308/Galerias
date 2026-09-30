@@ -1,0 +1,223 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 19:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "artista",
+  "proveedor",
+  "company",
+  "column_break_1",
+  "fecha",
+  "estado",
+  "section_obras",
+  "obras",
+  "total",
+  "section_pago",
+  "modo_pago",
+  "referencia",
+  "fecha_pago",
+  "column_break_2",
+  "factura_compra",
+  "pago",
+  "section_anulacion",
+  "motivo_anulacion",
+  "section_notas",
+  "notas"
+ ],
+ "fields": [
+  {
+   "fieldname": "artista",
+   "fieldtype": "Link",
+   "label": "Artista",
+   "options": "Artista",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "proveedor",
+   "fieldtype": "Link",
+   "label": "Proveedor",
+   "options": "Supplier",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Empresa",
+   "options": "Company",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha",
+   "default": "Today",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "estado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Por pagar\nPagada\nAnulada",
+   "default": "Por pagar",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_obras",
+   "fieldtype": "Section Break",
+   "label": "Obras liquidadas"
+  },
+  {
+   "fieldname": "obras",
+   "fieldtype": "Table",
+   "label": "Obras",
+   "options": "Liquidacion a Artista Obra",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "label": "Total a pagar al artista",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "in_list_view": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "section_pago",
+   "fieldtype": "Section Break",
+   "label": "Pago"
+  },
+  {
+   "fieldname": "modo_pago",
+   "fieldtype": "Link",
+   "label": "Forma de pago",
+   "options": "Mode of Payment",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "referencia",
+   "fieldtype": "Data",
+   "label": "Referencia",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "fecha_pago",
+   "fieldtype": "Date",
+   "label": "Fecha de pago",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "factura_compra",
+   "fieldtype": "Link",
+   "label": "Factura de compra",
+   "options": "Purchase Invoice",
+   "description": "Registra la deuda con el artista en cuentas por pagar.",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "pago",
+   "fieldtype": "Link",
+   "label": "Pago",
+   "options": "Payment Entry",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_anulacion",
+   "fieldtype": "Section Break",
+   "label": "Anulación",
+   "depends_on": "eval:doc.estado == 'Anulada'"
+  },
+  {
+   "fieldname": "motivo_anulacion",
+   "fieldtype": "Small Text",
+   "label": "Motivo",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_notas",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notas",
+   "fieldtype": "Small Text",
+   "label": "Notas"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Liquidacion a Artista",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "LIQ-.####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "artista",
+ "in_create": 1,
+ "search_fields": "artista,estado",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 0
+  }
+ ]
+}

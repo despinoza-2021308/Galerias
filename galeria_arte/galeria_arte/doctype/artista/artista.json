@@ -142,9 +142,13 @@
   {
    "link_doctype": "Obra de Arte",
    "link_fieldname": "artista"
+  },
+  {
+   "link_doctype": "Liquidacion a Artista",
+   "link_fieldname": "artista"
   }
  ],
- "modified": "2026-09-30 13:00:00.000000",
+ "modified": "2026-09-30 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Artista",

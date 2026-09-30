@@ -1,0 +1,68 @@
+/* Pagos a Artistas. Usa las variables de tema de Frappe (claro/oscuro). */
+
+.pa-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: var(--margin-md) 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.pa-tab {
+	border: 0;
+	background: transparent;
+	color: var(--text-muted);
+	padding: 10px 16px;
+	font-size: var(--text-lg);
+	font-weight: 500;
+	cursor: pointer;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+}
+
+.pa-tab.activo {
+	color: var(--text-color);
+	border-bottom-color: var(--primary);
+}
+
+.pa-tab .pa-cuenta {
+	display: inline-block;
+	min-width: 22px;
+	padding: 0 6px;
+	margin-left: 6px;
+	border-radius: 999px;
+	background: var(--control-bg);
+	color: var(--text-color);
+	font-size: var(--text-sm);
+	text-align: center;
+}
+
+.pa-tab .pa-cuenta.alerta {
+	background: var(--red-100, #fde8e8);
+	color: var(--red-600, #c0392b);
+}
+
+
+
+
+
+
+
+
+
+
+
+.pa-vacio {
+	color: var(--text-muted);
+	text-align: center;
+	padding: var(--padding-xl);
+}
+
+.pa-acciones-fila {
+	white-space: nowrap;
+	text-align: right;
+}
+
+.pa-acciones-fila .btn {
+	margin-left: 2px;
+}

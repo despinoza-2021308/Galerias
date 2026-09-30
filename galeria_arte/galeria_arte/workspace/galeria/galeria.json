@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-venta-obras\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Venta de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-catalogo\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Catálogo de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-arte\", \"type\": \"card\", \"data\": {\"card_name\": \"Arte\", \"col\": 4}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
+ "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-venta-obras\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Venta de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-catalogo\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Catálogo de Obras\", \"col\": 3}}, {\"id\": \"gal-sc-pagos-artistas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pagos a Artistas\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-arte\", \"type\": \"card\", \"data\": {\"card_name\": \"Arte\", \"col\": 4}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
  "creation": "2026-09-29 16:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,7 +16,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Arte",
-   "link_count": 6,
+   "link_count": 8,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -77,6 +77,26 @@
    "link_count": 0,
    "link_to": "ficha-coleccionista",
    "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pagos a Artistas",
+   "link_count": 0,
+   "link_to": "pagos-artistas",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Liquidaciones",
+   "link_count": 0,
+   "link_to": "Liquidacion a Artista",
+   "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
@@ -197,7 +217,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-30 15:00:00.000000",
+ "modified": "2026-09-30 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Galería",
@@ -229,6 +249,13 @@
    "doc_view": "",
    "label": "Catálogo de Obras",
    "link_to": "catalogo-obras",
+   "type": "Page"
+  },
+  {
+   "color": "Purple",
+   "doc_view": "",
+   "label": "Pagos a Artistas",
+   "link_to": "pagos-artistas",
    "type": "Page"
   },
   {

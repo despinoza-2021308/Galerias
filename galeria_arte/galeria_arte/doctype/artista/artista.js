@@ -9,6 +9,8 @@ frappe.ui.form.on("Artista", {
 			frappe.route_options = { artista: frm.doc.name };
 			frappe.set_route("catalogo-obras");
 		});
+		frm.add_custom_button(__("Liquidar obras vendidas"), () => galeria.artistas.liquidar(frm.doc.name, () => frm.reload_doc()));
+		frm.add_custom_button(__("Pagos a artistas"), () => frappe.set_route("pagos-artistas"));
 		const r = await frm.call("resumen");
 		const resumen = r.message || {};
 		frm.dashboard.clear_headline();

@@ -102,7 +102,7 @@ class VentaObras {
 				</div>
 			</div>`;
 		this.$totales.html(
-			tarjeta(__("Vendido este mes"), m(t.vendido_mes), `${t.ventas_mes || 0} ${__("obras facturadas")}`) +
+			tarjeta(__("Vendido este mes"), m(t.vendido_mes), galeria.pagos.cuantos(t.ventas_mes, __("obra facturada"), __("obras facturadas"))) +
 				tarjeta(__("Reservas activas"), t.reservas_activas || 0, `${__("Anticipos")}: ${m(t.anticipos_reservas)}`) +
 				tarjeta(
 					__("Reservas vencidas"),

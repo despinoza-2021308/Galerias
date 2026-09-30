@@ -92,6 +92,19 @@ def al_validar_factura(doc, method=None):
 			)
 
 
+def antes_de_anular_factura(doc, method=None):
+	"""Sales Invoice before_cancel: si la obra ya se liquidó al artista, primero
+	hay que anular esa liquidación."""
+	for obra in frappe.get_all(
+		"Obra de Arte", filters={"factura": doc.name, "liquidacion": ["is", "set"]}, fields=["titulo", "liquidacion"]
+	):
+		frappe.throw(
+			_("La obra {0} ya se liquidó al artista en {1}. Anule primero esa liquidación.").format(
+				obra.titulo, obra.liquidacion
+			)
+		)
+
+
 def al_anular_factura(doc, method=None):
 	"""Sales Invoice on_cancel: la obra vuelve a Reservada (si venía de una
 	reserva, que se reactiva) o a Disponible."""

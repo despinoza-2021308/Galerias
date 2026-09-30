@@ -40,7 +40,11 @@ required_apps = ["erpnext", "brainfel"]
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/galeria_arte/css/galeria_arte.css"
-app_include_js = [_con_version("js/galeria_pagos.js"), _con_version("js/galeria_obras.js")]
+app_include_js = [
+	_con_version("js/galeria_pagos.js"),
+	_con_version("js/galeria_obras.js"),
+	_con_version("js/galeria_artistas.js"),
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/galeria_arte/css/galeria_arte.css"
@@ -165,6 +169,7 @@ doc_events = {
 			"galeria_arte.api.obras.al_validar_factura",
 			"galeria_arte.api.facturacion.on_submit_factura",
 		],
+		"before_cancel": "galeria_arte.api.obras.antes_de_anular_factura",
 		"on_cancel": "galeria_arte.api.obras.al_anular_factura",
 	},
 	"Payment Entry": {

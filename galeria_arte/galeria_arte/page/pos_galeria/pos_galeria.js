@@ -71,6 +71,12 @@ class PosGaleria {
 						<button class="btn btn-primary" data-accion="cobrar">${__("COBRAR")}</button>
 					</div>
 				</div>
+				<div class="pos-gal-barra-movil">
+					<button type="button" class="pos-gal-barra-total" data-accion="ver-pedido">
+						<span data-movil-cantidad></span><span data-movil-total></span>
+					</button>
+					<button type="button" class="btn btn-primary" data-accion="cobrar">${__("COBRAR")}</button>
+				</div>
 			</div>`).appendTo(this.page.main);
 
 		this.campo_cliente = frappe.ui.form.make_control({
@@ -106,6 +112,9 @@ class PosGaleria {
 		this.$root.on("click", "[data-mas]", (e) => this.sumar($(e.currentTarget).attr("data-mas"), 1));
 		this.$root.on("click", "[data-menos]", (e) => this.sumar($(e.currentTarget).attr("data-menos"), -1));
 		this.$root.on("click", "[data-quitar]", (e) => this.sumar($(e.currentTarget).attr("data-quitar"), -Infinity));
+		this.$root.on("click", "[data-accion=ver-pedido]", () =>
+			this.$root.find(".pos-gal-pedido")[0].scrollIntoView({ behavior: "smooth", block: "start" })
+		);
 		this.$root.on("click", "[data-accion=vaciar]", () => this.vaciar());
 		this.$root.on("click", "[data-accion=cobrar]", () => this.cobrar());
 		this.$root.on("click", "[data-accion=nuevo-cliente]", () => this.nuevo_cliente());
@@ -222,6 +231,10 @@ class PosGaleria {
 		const total = this.total();
 		this.$root.find("[data-total]").text(this.m(total));
 		this.$root.find("[data-iva]").text(total ? __("IVA incluido {0}", [this.m(total - total / 1.12)]) : "");
+		const unidades = lineas.reduce((n, l) => n + l.qty, 0);
+		this.$root.find("[data-movil-cantidad]").text(galeria.pagos.cuantos(unidades, __("producto"), __("productos")));
+		this.$root.find("[data-movil-total]").text(this.m(total));
+		this.$root.find(".pos-gal-barra-movil").toggleClass("visible", lineas.length > 0);
 		this.$root.find("[data-accion=cobrar]").prop("disabled", !lineas.length);
 		this.$root.find("[data-accion=vaciar]").prop("disabled", !lineas.length);
 	}

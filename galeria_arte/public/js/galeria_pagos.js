@@ -13,6 +13,11 @@ galeria.pagos.es_factura_galeria = function (doc) {
 	return !!(prefijo && doc && doc.name && doc.name.startsWith(prefijo));
 };
 
+// "1 obra" / "3 obras"
+galeria.pagos.cuantos = function (n, singular, plural) {
+	return `${n || 0} ${cint(n) === 1 ? singular : plural}`;
+};
+
 galeria.pagos.moneda = function (valor) {
 	return format_currency(valor || 0, "GTQ");
 };

@@ -40,6 +40,8 @@
   "column_break_6",
   "precio_vendido",
   "monto_artista_venta",
+  "liquidacion",
+  "artista_pagado",
   "section_erp",
   "articulo"
  ],
@@ -277,6 +279,22 @@
    "no_copy": 1
   },
   {
+   "fieldname": "liquidacion",
+   "fieldtype": "Link",
+   "label": "Liquidación al artista",
+   "options": "Liquidacion a Artista",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "artista_pagado",
+   "fieldtype": "Check",
+   "label": "Artista pagado",
+   "read_only": 1,
+   "no_copy": 1,
+   "default": "0"
+  },
+  {
    "fieldname": "section_erp",
    "fieldtype": "Section Break",
    "label": "Vínculo contable",
@@ -298,7 +316,7 @@
    "link_fieldname": "obra"
   }
  ],
- "modified": "2026-09-30 18:00:00.000000",
+ "modified": "2026-09-30 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Obra de Arte",

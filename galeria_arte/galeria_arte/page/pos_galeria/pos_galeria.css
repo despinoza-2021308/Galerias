@@ -316,9 +316,54 @@
 	font-weight: 700;
 }
 
+/* Barra fija en pantallas pequeñas: el pedido queda debajo de los productos. */
+.pos-gal-barra-movil {
+	display: none;
+}
+
 @media (max-width: 991px) {
 	.pos-gal {
 		grid-template-columns: minmax(0, 1fr);
+		padding-bottom: 76px;
+	}
+	.pos-gal-barra-movil.visible {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: var(--margin-sm);
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1020;
+		padding: 10px var(--padding-md);
+		background: var(--card-bg);
+		border-top: 1px solid var(--border-color);
+		box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+	}
+	.pos-gal-barra-total {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		border: 0;
+		background: transparent;
+		color: var(--text-color);
+		padding: 0;
+		text-align: left;
+	}
+	.pos-gal-barra-total [data-movil-cantidad] {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+	.pos-gal-barra-total [data-movil-total] {
+		font-size: 20px;
+		font-weight: 700;
+	}
+	.pos-gal-barra-movil .btn {
+		min-width: 130px;
+		height: 48px;
+		font-size: var(--text-lg);
+		font-weight: 600;
 	}
 	.pos-gal-pedido {
 		position: static;

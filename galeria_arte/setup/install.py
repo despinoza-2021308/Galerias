@@ -8,6 +8,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.utils.nestedset import get_root_of
 
+from galeria_arte.api.liquidaciones import asegurar_articulo_liquidacion
 from galeria_arte.galeria_arte.doctype.artista.artista import asegurar_grupo_proveedor
 
 SERIE_FACTURA = "GAL-.#####"
@@ -95,6 +96,28 @@ CAMPOS_PERSONALIZADOS = {
 			"read_only": 1,
 			"depends_on": "eval:doc.galeria_reservacion",
 		},
+		{
+			"fieldname": "galeria_liquidacion",
+			"label": "Liquidación a artista",
+			"fieldtype": "Link",
+			"options": "Liquidacion a Artista",
+			"insert_after": "galeria_reservacion",
+			"read_only": 1,
+			"no_copy": 1,
+			"depends_on": "eval:doc.galeria_liquidacion",
+		},
+	],
+	"Purchase Invoice": [
+		{
+			"fieldname": "galeria_liquidacion",
+			"label": "Liquidación a artista",
+			"fieldtype": "Link",
+			"options": "Liquidacion a Artista",
+			"insert_after": "supplier_name",
+			"read_only": 1,
+			"no_copy": 1,
+			"depends_on": "eval:doc.galeria_liquidacion",
+		},
 	],
 	"Sales Invoice Item": [
 		{
@@ -167,6 +190,7 @@ def configurar():
 	crear_planes_cuotas()
 	crear_salas()
 	asegurar_grupo_proveedor()
+	asegurar_articulo_liquidacion()
 	configurar_galeria(company, listas, plantilla)
 	frappe.db.commit()
 

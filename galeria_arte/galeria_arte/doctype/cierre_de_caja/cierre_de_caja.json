@@ -13,6 +13,8 @@
   "total_facturado",
   "ventas_pendientes",
   "column_break_2",
+  "total_cobrado",
+  "total_pagos_artistas",
   "total_esperado",
   "total_contado",
   "diferencia",
@@ -85,13 +87,29 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "total_cobrado",
+   "fieldtype": "Currency",
+   "label": "Total cobrado",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "description": "Todos los pagos recibidos en el día: ventas, anticipos, abonos y cuotas."
+  },
+  {
+   "fieldname": "total_pagos_artistas",
+   "fieldtype": "Currency",
+   "label": "Pagado a artistas",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "description": "Pagos a artistas hechos por este cajero en el día."
+  },
+  {
    "fieldname": "total_esperado",
    "fieldtype": "Currency",
-   "label": "Total cobrado (esperado)",
+   "label": "Total esperado en caja",
    "options": "Company:company:default_currency",
    "read_only": 1,
    "in_list_view": 1,
-   "description": "Todos los pagos recibidos en el día: ventas de contado, abonos y cuotas."
+   "description": "Lo cobrado menos lo pagado a artistas."
   },
   {
    "fieldname": "total_contado",
@@ -139,7 +157,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-29 17:00:00.000000",
+ "modified": "2026-09-30 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Cierre de Caja",

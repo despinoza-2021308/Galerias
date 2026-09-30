@@ -6,6 +6,8 @@
  "field_order": [
   "modo_pago",
   "num_pagos",
+  "ingresos",
+  "egresos",
   "esperado",
   "contado",
   "diferencia"
@@ -17,38 +19,58 @@
    "label": "Forma de pago",
    "options": "Mode of Payment",
    "in_list_view": 1,
-   "read_only": 1
+   "read_only": 1,
+   "columns": 2
   },
   {
    "fieldname": "num_pagos",
    "fieldtype": "Int",
    "label": "Pagos",
-   "in_list_view": 1,
+   "in_list_view": 0,
    "read_only": 1
+  },
+  {
+   "fieldname": "ingresos",
+   "fieldtype": "Currency",
+   "label": "Cobrado",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "egresos",
+   "fieldtype": "Currency",
+   "label": "A artistas",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 2
   },
   {
    "fieldname": "esperado",
    "fieldtype": "Currency",
    "label": "Esperado",
    "in_list_view": 1,
-   "read_only": 1
+   "read_only": 1,
+   "columns": 2
   },
   {
    "fieldname": "contado",
    "fieldtype": "Currency",
    "label": "Contado",
-   "in_list_view": 1
+   "in_list_view": 1,
+   "columns": 1
   },
   {
    "fieldname": "diferencia",
    "fieldtype": "Currency",
    "label": "Diferencia",
    "in_list_view": 1,
-   "read_only": 1
+   "read_only": 1,
+   "columns": 1
   }
  ],
  "links": [],
- "modified": "2026-09-29 17:00:00.000000",
+ "modified": "2026-09-30 19:30:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Cierre de Caja Pago",

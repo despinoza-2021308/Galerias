@@ -42,6 +42,15 @@ frappe.ui.form.on("Obra de Arte", {
 				frm.add_custom_button(__("Cancelar reserva"), () => galeria.obras.cancelar_reserva(res, recargar), __("Reserva"));
 			}
 		}
+		if (estado === "Vendida") {
+			frappe.xcall("galeria_arte.api.liquidaciones.estado_obra", { obra: frm.doc.name }).then((p) => {
+				if (!p) return;
+				frm.dashboard.add_indicator(
+					__("Pago al artista: {0}", [p.estado_pago]),
+					galeria.artistas.COLORES_PAGO[p.estado_pago] || "gray"
+				);
+			});
+		}
 		if (estado === "Vendida" && frm.doc.factura) {
 			frm.add_custom_button(__("Estado de cuenta"), () => galeria.pagos.estado_cuenta(frm.doc.factura));
 			frm.add_custom_button(__("Ver factura"), () => frappe.set_route("Form", "Sales Invoice", frm.doc.factura));
