@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
+ "content": "[{\"id\": \"gal-hdr-1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Galería</b></span>\", \"col\": 12}}, {\"id\": \"gal-sc-pos\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"POS Cafetería\", \"col\": 3}}, {\"id\": \"gal-sc-ventas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ventas\", \"col\": 3}}, {\"id\": \"gal-sc-cobros\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cobros\", \"col\": 3}}, {\"id\": \"gal-sc-cierre\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cierre de Caja\", \"col\": 3}}, {\"id\": \"gal-sc-sala\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salas\", \"col\": 3}}, {\"id\": \"gal-spacer-1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"gal-card-ventas\", \"type\": \"card\", \"data\": {\"card_name\": \"Facturación y cobros\", \"col\": 4}}, {\"id\": \"gal-card-conf\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuración\", \"col\": 4}}]",
  "creation": "2026-09-29 16:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,9 +16,19 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Facturación y cobros",
-   "link_count": 5,
+   "link_count": 6,
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "POS Cafetería",
+   "link_count": 0,
+   "link_to": "pos-galeria",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -119,7 +129,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-30 10:00:00.000000",
+ "modified": "2026-09-30 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Galería",
@@ -132,6 +142,13 @@
  "roles": [],
  "sequence_id": 50.0,
  "shortcuts": [
+  {
+   "color": "Orange",
+   "doc_view": "",
+   "label": "POS Cafetería",
+   "link_to": "pos-galeria",
+   "type": "Page"
+  },
   {
    "color": "Blue",
    "doc_view": "",
