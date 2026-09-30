@@ -286,14 +286,14 @@ class PosGaleria {
 			<div class="text-muted small" style="margin-bottom: 6px">${__("Detalle de pagos (combine varias formas de pago)")}</div>
 			<div data-pagos></div>
 			<button type="button" class="btn btn-xs btn-default" data-agregar>+ ${__("Agregar forma de pago")}</button>
-			<div class="form-group" style="margin-top: var(--margin-md); max-width: 260px">
+			<div class="form-group" data-bloque-recibido style="margin-top: var(--margin-md); max-width: 260px">
 				<label class="control-label">${__("Efectivo recibido (para calcular el vuelto)")}</label>
 				<input type="number" min="0" step="0.01" inputmode="decimal" class="form-control" data-recibido>
 			</div>
 			<div class="pos-gal-resumen">
 				<div><div class="text-muted small">${__("Pagado")}</div><div class="valor" data-pagado></div></div>
 				<div><div class="text-muted small">${__("Falta")}</div><div class="valor" data-falta></div></div>
-				<div><div class="text-muted small">${__("Vuelto")}</div><div class="valor" data-vuelto></div></div>
+				<div data-bloque-vuelto><div class="text-muted small">${__("Vuelto")}</div><div class="valor" data-vuelto></div></div>
 			</div>`);
 
 		const fila = (modo, monto) => `
@@ -322,7 +322,12 @@ class PosGaleria {
 			const pagado = flt(pagos.reduce((s, p) => s + p.monto, 0), 2);
 			const falta = flt(total - pagado, 2);
 			const en_efectivo = flt(pagos.filter((p) => p.modo_pago === efectivo).reduce((s, p) => s + p.monto, 0), 2);
-			const recibido = flt($w.find("[data-recibido]").val());
+			// El efectivo recibido y el vuelto solo aplican si algún pago es en efectivo.
+			const hay_efectivo = pagos.some((p) => p.modo_pago === efectivo);
+			$w.find("[data-bloque-recibido], [data-bloque-vuelto]").toggle(hay_efectivo);
+			$w.find(".pos-gal-resumen").toggleClass("sin-vuelto", !hay_efectivo);
+			if (!hay_efectivo) $w.find("[data-recibido]").val("");
+			const recibido = hay_efectivo ? flt($w.find("[data-recibido]").val()) : 0;
 			const vuelto = recibido > 0 ? flt(recibido - en_efectivo, 2) : 0;
 			$w.find("[data-pagado]").text(this.m(pagado));
 			$w.find("[data-falta]")
@@ -363,8 +368,8 @@ class PosGaleria {
 					cliente: this.cliente,
 					lista_precios: this.lista,
 				});
-				const recibido = flt($w.find("[data-recibido]").val());
 				const en_efectivo = pagos.filter((p) => p.modo_pago === efectivo).reduce((s, p) => s + p.monto, 0);
+				const recibido = en_efectivo > 0 ? flt($w.find("[data-recibido]").val()) : 0;
 				d.hide();
 				this.venta_lista(r, recibido > 0 ? flt(recibido - en_efectivo, 2) : 0);
 			} catch (err) {

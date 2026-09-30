@@ -26,7 +26,6 @@ GRUPOS_ARTICULO = [
 LISTAS_PRECIOS = {
 	"lista_precios_publico": "Público",
 	"lista_precios_evento": "Evento",
-	"lista_precios_happy_hour": "Happy Hour",
 }
 
 SALAS = [

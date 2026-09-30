@@ -15,9 +15,8 @@
   "plantilla_impuestos",
   "section_precios",
   "lista_precios_publico",
-  "lista_precios_evento",
   "column_break_precios",
-  "lista_precios_happy_hour",
+  "lista_precios_evento",
   "section_eventos",
   "dias_vencimiento_reserva"
  ],
@@ -88,19 +87,13 @@
    "options": "Price List"
   },
   {
-   "fieldname": "lista_precios_evento",
-   "fieldtype": "Link",
-   "label": "Lista de precios Evento",
-   "options": "Price List"
-  },
-  {
    "fieldname": "column_break_precios",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "lista_precios_happy_hour",
+   "fieldname": "lista_precios_evento",
    "fieldtype": "Link",
-   "label": "Lista de precios Happy Hour",
+   "label": "Lista de precios Evento",
    "options": "Price List"
   },
   {
@@ -119,7 +112,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-09-29 17:00:00.000000",
+ "modified": "2026-09-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Configuracion Galeria",

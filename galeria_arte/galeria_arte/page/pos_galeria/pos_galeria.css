@@ -307,6 +307,10 @@
 	text-align: center;
 }
 
+.pos-gal-resumen.sin-vuelto {
+	grid-template-columns: repeat(2, 1fr);
+}
+
 .pos-gal-resumen .valor {
 	font-size: var(--text-xl);
 	font-weight: 700;

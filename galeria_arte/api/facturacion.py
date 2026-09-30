@@ -50,7 +50,7 @@ def extend_bootinfo(bootinfo):
 		"plantilla_impuestos": conf.plantilla_impuestos,
 		"lista_precios_publico": conf.lista_precios_publico,
 		"listas_precios": [
-			l for l in (conf.lista_precios_publico, conf.lista_precios_evento, conf.lista_precios_happy_hour) if l
+			l for l in (conf.lista_precios_publico, conf.lista_precios_evento) if l
 		],
 	}
 

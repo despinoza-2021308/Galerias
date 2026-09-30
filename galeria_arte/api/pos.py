@@ -29,7 +29,7 @@ def _categorias() -> list:
 
 
 def _listas_precios(conf) -> list:
-	return [l for l in (conf.lista_precios_publico, conf.lista_precios_evento, conf.lista_precios_happy_hour) if l]
+	return [l for l in (conf.lista_precios_publico, conf.lista_precios_evento) if l]
 
 
 def _precios(lista_precios: str, conf) -> dict:

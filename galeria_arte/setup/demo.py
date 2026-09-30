@@ -8,30 +8,34 @@ import frappe
 
 UOM = "Unidad(es)"
 
-# (código, nombre, categoría, precio Público, precio Evento, precio Happy Hour)
+# (código, nombre, categoría, precio Público, precio Evento)
+# Los licores se venden en la misma cafetería, dentro de Bebidas.
 PRODUCTOS = [
-	("CAF-001", "Café Americano", "Bebidas", 20, 22, 15),
-	("CAF-002", "Capuchino", "Bebidas", 28, 30, 22),
-	("CAF-003", "Café Latte", "Bebidas", 28, 30, 22),
-	("CAF-004", "Limonada Natural", "Bebidas", 22, 25, 16),
-	("CAF-005", "Agua Pura", "Bebidas", 10, 12, 10),
-	("CAF-006", "Copa de Vino Tinto", "Bebidas", 45, 50, 35),
-	("CAF-007", "Cerveza Nacional", "Bebidas", 25, 28, 18),
-	("CAF-008", "Cóctel de la Casa", "Bebidas", 50, 55, 38),
-	("COM-001", "Sándwich de Pollo", "Comida", 55, 60, 55),
-	("COM-002", "Tabla de Quesos y Carnes Frías", "Comida", 125, 140, 125),
-	("COM-003", "Bruschettas (3 unidades)", "Comida", 45, 50, 45),
-	("COM-004", "Quesadilla", "Comida", 40, 45, 40),
-	("POS-001", "Pastel de Chocolate", "Postres", 35, 38, 35),
-	("POS-002", "Cheesecake de Frutos Rojos", "Postres", 38, 42, 38),
-	("POS-003", "Brownie con Helado", "Postres", 32, 35, 32),
-	("OBRA-PRUEBA", "Obra de prueba - Paisaje al óleo", "Obras de Arte", 11200, 11200, None),
+	("CAF-001", "Café Americano", "Bebidas", 20, 22),
+	("CAF-002", "Capuchino", "Bebidas", 28, 30),
+	("CAF-003", "Café Latte", "Bebidas", 28, 30),
+	("CAF-004", "Limonada Natural", "Bebidas", 22, 25),
+	("CAF-005", "Agua Pura", "Bebidas", 10, 12),
+	("CAF-006", "Copa de Vino Tinto", "Bebidas", 45, 50),
+	("CAF-007", "Cerveza Nacional", "Bebidas", 25, 28),
+	("CAF-008", "Cóctel de la Casa", "Bebidas", 50, 55),
+	("CAF-009", "Ron Añejo (trago)", "Bebidas", 40, 45),
+	("CAF-010", "Cerveza Importada", "Bebidas", 35, 38),
+	("CAF-011", "Copa de Vino Blanco", "Bebidas", 45, 50),
+	("COM-001", "Sándwich de Pollo", "Comida", 55, 60),
+	("COM-002", "Tabla de Quesos y Carnes Frías", "Comida", 125, 140),
+	("COM-003", "Bruschettas (3 unidades)", "Comida", 45, 50),
+	("COM-004", "Quesadilla", "Comida", 40, 45),
+	("POS-001", "Pastel de Chocolate", "Postres", 35, 38),
+	("POS-002", "Cheesecake de Frutos Rojos", "Postres", 38, 42),
+	("POS-003", "Brownie con Helado", "Postres", 32, 35),
+	("OBRA-PRUEBA", "Obra de prueba - Paisaje al óleo", "Obras de Arte", 11200, 11200),
 ]
 
 
 def cargar_productos():
 	conf = frappe.get_single("Configuracion Galeria")
-	listas = (conf.lista_precios_publico, conf.lista_precios_evento, conf.lista_precios_happy_hour)
+	listas = (conf.lista_precios_publico, conf.lista_precios_evento)
 	creados = 0
 	for codigo, nombre, grupo, *precios in PRODUCTOS:
 		if not frappe.db.exists("Item", codigo):
