@@ -15,8 +15,6 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, date_diff, flt, formatdate, get_first_day, getdate, nowdate
 
-from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
-from erpnext.accounts.party import get_party_account
 
 from galeria_arte.api.facturacion import (
 	FEL_CERTIFICADA,
@@ -25,6 +23,7 @@ from galeria_arte.api.facturacion import (
 	crear_factura,
 	get_config,
 	opciones_cobro,
+	recibir_anticipo,
 	resumen_cuotas,
 )
 from galeria_arte.galeria_arte.doctype.obra_de_arte.obra_de_arte import DISPONIBLE, RESERVADA
@@ -60,31 +59,12 @@ def _validar_modo_pago(modo_pago: str):
 
 
 def _recibir_pago(cliente: str, monto: float, modo_pago: str, referencia, obra, reservacion=None) -> str:
-	"""Pago del cliente aún sin factura (anticipo). Queda a su favor hasta aplicarse."""
-	_validar_modo_pago(modo_pago)
-	conf = get_config()
-	pe = frappe.new_doc("Payment Entry")
-	pe.payment_type = "Receive"
-	pe.company = conf.company
-	pe.posting_date = nowdate()
-	pe.mode_of_payment = modo_pago
-	pe.party_type = "Customer"
-	pe.party = cliente
-	pe.paid_from = get_party_account("Customer", cliente, conf.company)
-	pe.paid_to = get_bank_cash_account(modo_pago, conf.company)["account"]
-	pe.paid_amount = pe.received_amount = flt(monto)
-	pe.reference_no = referencia or f"Anticipo {reservacion or obra.name}"
-	pe.reference_date = nowdate()
-	pe.galeria_pago = 1
-	pe.galeria_obra = obra.name
-	pe.galeria_reservacion = reservacion
-	pe.custom_remarks = 1
-	pe.remarks = f"Anticipo por la obra {obra.name} - {obra.titulo}" + (f" (reserva {reservacion})" if reservacion else "")
-	pe.setup_party_account_field()
-	pe.set_missing_values()
-	pe.insert()
-	pe.submit()
-	return pe.name
+	"""Anticipo o abono por una obra; queda a favor del cliente hasta aplicarse."""
+	observacion = f"Anticipo por la obra {obra.name} - {obra.titulo}" + (f" (reserva {reservacion})" if reservacion else "")
+	return recibir_anticipo(
+		cliente, monto, modo_pago, referencia or f"Anticipo {reservacion or obra.name}", observacion,
+		galeria_obra=obra.name, galeria_reservacion=reservacion,
+	)
 
 
 def _sin_aplicar(pago: str) -> float:

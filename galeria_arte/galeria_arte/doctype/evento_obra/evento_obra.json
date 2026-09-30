@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "obra",
+  "titulo",
+  "artista"
+ ],
+ "fields": [
+  {
+   "fieldname": "obra",
+   "fieldtype": "Link",
+   "label": "Obra",
+   "options": "Obra de Arte",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "titulo",
+   "fieldtype": "Data",
+   "label": "Título",
+   "fetch_from": "obra.titulo",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "artista",
+   "fieldtype": "Link",
+   "label": "Artista",
+   "options": "Artista",
+   "fetch_from": "obra.artista",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 3
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Evento Obra",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

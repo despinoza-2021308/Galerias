@@ -85,6 +85,8 @@ galeria.artistas.liquidar = async function (artista, on_done) {
 				d.hide();
 				galeria.artistas.liquidacion_lista(r);
 				on_done && on_done(r);
+			} catch (e) {
+				// El servidor ya mostró el mensaje de error.
 			} finally {
 				d.get_primary_btn().prop("disabled", false);
 			}
@@ -176,6 +178,8 @@ galeria.artistas.pagar = async function (liquidacion, total, on_done) {
 				d.hide();
 				frappe.show_alert({ message: __("Pago al artista registrado"), indicator: "green" });
 				on_done && on_done(r);
+			} catch (e) {
+				// El servidor ya mostró el mensaje de error.
 			} finally {
 				d.get_primary_btn().prop("disabled", false);
 			}

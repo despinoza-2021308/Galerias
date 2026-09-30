@@ -45,6 +45,7 @@ app_include_js = [
 	_con_version("js/galeria_pagos.js"),
 	_con_version("js/galeria_obras.js"),
 	_con_version("js/galeria_artistas.js"),
+	_con_version("js/galeria_eventos.js"),
 ]
 
 # include js, css files in header of web template
@@ -171,7 +172,10 @@ doc_events = {
 			"galeria_arte.api.facturacion.on_submit_factura",
 		],
 		"before_cancel": "galeria_arte.api.obras.antes_de_anular_factura",
-		"on_cancel": "galeria_arte.api.obras.al_anular_factura",
+		"on_cancel": [
+			"galeria_arte.api.obras.al_anular_factura",
+			"galeria_arte.api.eventos.al_anular_factura",
+		],
 	},
 	"Payment Entry": {
 		"validate": "galeria_arte.api.facturacion.marcar_pago_galeria",
@@ -180,6 +184,10 @@ doc_events = {
 
 # Scheduled Tasks
 # ---------------
+
+scheduler_events = {
+	"daily": ["galeria_arte.api.eventos.vencer_tentativas"],
+}
 
 # scheduler_events = {
 # 	"all": [

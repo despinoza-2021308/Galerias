@@ -8,6 +8,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.utils.nestedset import get_root_of
 
+from galeria_arte.api.eventos import asegurar_articulos_alquiler
 from galeria_arte.api.liquidaciones import asegurar_articulo_liquidacion
 from galeria_arte.galeria_arte.doctype.artista.artista import asegurar_grupo_proveedor
 
@@ -32,10 +33,11 @@ LISTAS_PRECIOS = {
 }
 
 SALAS = [
-	{"nombre_sala": "Sala Principal", "capacidad": 120, "color": "#4F46E5"},
-	{"nombre_sala": "Terraza", "capacidad": 60, "color": "#0D9488"},
-	{"nombre_sala": "Salón Privado", "capacidad": 20, "color": "#B45309"},
+	{"nombre_sala": "Sala Principal", "capacidad": 120, "color": "#4F46E5", "precio_alquiler": 8000},
+	{"nombre_sala": "Terraza", "capacidad": 60, "color": "#0D9488", "precio_alquiler": 5000},
+	{"nombre_sala": "Salón Privado", "capacidad": 20, "color": "#B45309", "precio_alquiler": 2500},
 ]
+PRECIO_ALQUILER_TODO = 14000
 
 # Planes de pago en cuotas mensuales sobre el saldo después del anticipo; la
 # primera cuota vence un mes después de la factura.
@@ -67,6 +69,16 @@ CAMPOS_PERSONALIZADOS = {
 			"read_only": 1,
 			"no_copy": 1,
 			"depends_on": "eval:doc.galeria_reservacion",
+		},
+		{
+			"fieldname": "galeria_evento",
+			"label": "Evento",
+			"fieldtype": "Link",
+			"options": "Evento",
+			"insert_after": "galeria_reservacion",
+			"read_only": 1,
+			"no_copy": 1,
+			"depends_on": "eval:doc.galeria_evento",
 		},
 	],
 	"Payment Entry": [
@@ -105,6 +117,16 @@ CAMPOS_PERSONALIZADOS = {
 			"read_only": 1,
 			"no_copy": 1,
 			"depends_on": "eval:doc.galeria_liquidacion",
+		},
+		{
+			"fieldname": "galeria_evento",
+			"label": "Evento",
+			"fieldtype": "Link",
+			"options": "Evento",
+			"insert_after": "galeria_liquidacion",
+			"read_only": 1,
+			"no_copy": 1,
+			"depends_on": "eval:doc.galeria_evento",
 		},
 	],
 	"Purchase Invoice": [
@@ -191,6 +213,7 @@ def configurar():
 	crear_salas()
 	asegurar_grupo_proveedor()
 	asegurar_articulo_liquidacion()
+	asegurar_articulos_alquiler()
 	configurar_galeria(company, listas, plantilla)
 	frappe.db.commit()
 
@@ -323,6 +346,9 @@ def crear_planes_cuotas():
 def crear_salas():
 	for sala in SALAS:
 		if frappe.db.exists("Sala", sala["nombre_sala"]):
+			# Salas creadas antes de existir el precio de alquiler.
+			if not frappe.db.get_value("Sala", sala["nombre_sala"], "precio_alquiler"):
+				frappe.db.set_value("Sala", sala["nombre_sala"], "precio_alquiler", sala["precio_alquiler"])
 			continue
 		frappe.get_doc({"doctype": "Sala", "activa": 1, **sala}).insert(ignore_permissions=True)
 
@@ -339,4 +365,6 @@ def configurar_galeria(company, listas, plantilla):
 			conf.set(campo, lista)
 	if not conf.dias_vencimiento_reserva:
 		conf.dias_vencimiento_reserva = 7
+	if not conf.precio_alquiler_todo:
+		conf.precio_alquiler_todo = PRECIO_ALQUILER_TODO
 	conf.save(ignore_permissions=True)

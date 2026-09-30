@@ -131,3 +131,75 @@ def quitar_obra_de_prueba():
 	for precio in frappe.get_all("Item Price", filters={"item_code": OBRA_PRUEBA}, pluck="name"):
 		frappe.delete_doc("Item Price", precio, force=1, ignore_permissions=True)
 	frappe.delete_doc("Item", OBRA_PRUEBA, force=1, ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Eventos de ejemplo (relativos a la fecha de carga)
+# ---------------------------------------------------------------------------
+
+
+def cargar_eventos():
+	"""Una exposición, dos cenas y un alquiler tentativo. No duplica por nombre."""
+	from frappe.utils import add_days, getdate, nowdate
+
+	hoy = getdate(nowdate())
+	viernes = add_days(hoy, (4 - hoy.weekday()) % 7 or 7)
+	obras_elena = frappe.get_all(
+		"Obra de Arte", filters={"artista": "Elena Marroquín", "estado": ["!=", "Devuelta al artista"]}, pluck="name", limit=3
+	)
+	cliente = frappe.db.get_value("Customer", {"customer_name": ["like", "María%"]}, "name") or frappe.db.get_single_value(
+		"Configuracion Galeria", "cliente_consumidor_final"
+	)
+	eventos = [
+		{
+			"nombre": "Luces del Altiplano - Elena Marroquín",
+			"tipo": "Exposición",
+			"inicio": f"{add_days(hoy, -3)} 10:00:00",
+			"fin": f"{add_days(hoy, 18)} 18:00:00",
+			"sala": "Sala Principal",
+			"descripcion": "Paisajes del altiplano guatemalteco en óleo de gran formato.",
+			"obras": [{"obra": o} for o in obras_elena],
+			"_publicar": True,
+		},
+		{
+			"nombre": "Cena de Gala de Otoño",
+			"tipo": "Cena",
+			"inicio": f"{viernes} 19:30:00",
+			"fin": f"{viernes} 22:30:00",
+			"sala": "Terraza",
+			"cupo": 40,
+			"precio_boleto": 350,
+			"descripcion": "Menú de tres tiempos con maridaje, entre las obras de la exposición.",
+			"_publicar": True,
+		},
+		{
+			"nombre": "Maridaje y Arte",
+			"tipo": "Cena",
+			"inicio": f"{add_days(hoy, 12)} 19:00:00",
+			"fin": f"{add_days(hoy, 12)} 22:00:00",
+			"sala": "Salón Privado",
+			"cupo": 16,
+			"precio_boleto": 450,
+		},
+		{
+			"nombre": "Celebración privada",
+			"tipo": "Alquiler",
+			"inicio": f"{add_days(hoy, 20)} 18:00:00",
+			"fin": f"{add_days(hoy, 20)} 23:30:00",
+			"sala": "Terraza",
+			"cliente": cliente,
+			"cargos": [{"descripcion": "Montaje y mobiliario", "monto": 1200}],
+		},
+	]
+	creados = 0
+	for datos in eventos:
+		if frappe.db.exists("Evento", {"nombre": datos["nombre"]}):
+			continue
+		publicar = datos.pop("_publicar", False)
+		ev = frappe.get_doc({"doctype": "Evento", **datos}).insert(ignore_permissions=True)
+		if publicar:
+			ev.estado = "Publicado"
+			ev.save(ignore_permissions=True)
+		creados += 1
+	frappe.db.commit()
+	print(f"Eventos creados: {creados} de {len(eventos)}")

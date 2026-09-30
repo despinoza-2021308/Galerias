@@ -80,6 +80,7 @@ def crear_factura(
 	observaciones: str | None = None,
 	anticipos=None,
 	vence=None,
+	campos=None,
 ):
 	"""Crea y valida una factura de la galería.
 
@@ -88,6 +89,7 @@ def crear_factura(
 	pagos: [{modo_pago, monto, referencia?}] que se registran al momento.
 	anticipos: [{pago, monto}] Payment Entry ya recibidos que se aplican a la factura.
 	vence: fecha límite de pago cuando el saldo se paga con abonos libres (sin plan).
+	campos: valores extra para la factura (p. ej. {"galeria_evento": ...}).
 	"""
 	items = _cargar(items) or []
 	if not items:
@@ -110,9 +112,14 @@ def crear_factura(
 		si.payment_terms_template = plan_pagos
 	elif vence:
 		si.due_date = vence
+	for campo, valor in (_cargar(campos) or {}).items():
+		si.set(campo, valor)
 
 	for row in items:
 		item = {"item_code": row["item_code"], "qty": flt(row.get("qty") or 1)}
+		for campo in ("item_name", "description"):
+			if row.get(campo):
+				item[campo] = row[campo]
 		if row.get("rate") not in (None, ""):
 			item["rate"] = flt(row["rate"])
 			item["price_list_rate"] = flt(row["rate"])
@@ -124,6 +131,9 @@ def crear_factura(
 		if original.get("rate") not in (None, ""):
 			row.price_list_rate = row.rate = flt(original["rate"])
 			row.discount_percentage = 0
+		for campo in ("item_name", "description"):
+			if original.get(campo):
+				row.set(campo, original[campo])
 		if original.get("galeria_monto_artista") not in (None, ""):
 			row.galeria_monto_artista = flt(original["galeria_monto_artista"])
 			si.flags.galeria_montos_explicitos = True
@@ -226,6 +236,43 @@ def registrar_pagos(factura: str, pagos):
 	for p in pagos:
 		creados.append(_crear_payment_entry(si, p["modo_pago"], flt(p["monto"]), p.get("referencia")))
 	return {"pagos": creados, **estado_factura(factura)}
+
+
+def recibir_anticipo(cliente: str, monto: float, modo_pago: str, referencia: str | None, observacion: str, **campos) -> str:
+	"""Pago de un cliente todavía sin factura (anticipo o abono). Queda a su favor
+	hasta aplicarse a una factura. `campos`: vínculos del pago (obra, reservación, evento)."""
+	from erpnext.accounts.party import get_party_account
+
+	if modo_pago not in opciones_cobro()["modos_pago"]:
+		frappe.throw(_("Forma de pago no válida: {0}").format(modo_pago))
+	conf = get_config()
+	pe = frappe.new_doc("Payment Entry")
+	pe.payment_type = "Receive"
+	pe.company = conf.company
+	pe.posting_date = nowdate()
+	pe.mode_of_payment = modo_pago
+	pe.party_type = "Customer"
+	pe.party = cliente
+	pe.paid_from = get_party_account("Customer", cliente, conf.company)
+	pe.paid_to = get_bank_cash_account(modo_pago, conf.company)["account"]
+	pe.paid_amount = pe.received_amount = flt(monto)
+	pe.reference_no = referencia or observacion[:140]
+	pe.reference_date = nowdate()
+	pe.galeria_pago = 1
+	for campo, valor in campos.items():
+		pe.set(campo, valor)
+	pe.custom_remarks = 1
+	pe.remarks = observacion
+	pe.setup_party_account_field()
+	pe.set_missing_values()
+	pe.insert()
+	pe.submit()
+	return pe.name
+
+
+def pago_sin_aplicar(pago: str) -> float:
+	pe = frappe.db.get_value("Payment Entry", pago, ["docstatus", "unallocated_amount"], as_dict=True)
+	return flt(pe.unallocated_amount) if pe and pe.docstatus == 1 else 0.0
 
 
 def _crear_payment_entry(si, modo_pago: str, monto: float, referencia: str | None = None) -> str:

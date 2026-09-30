@@ -8,6 +8,7 @@
  "field_order": [
   "nombre_sala",
   "capacidad",
+  "precio_alquiler",
   "column_break_1",
   "color",
   "activa",
@@ -30,6 +31,12 @@
    "in_list_view": 1,
    "label": "Capacidad",
    "non_negative": 1
+  },
+  {
+   "fieldname": "precio_alquiler",
+   "fieldtype": "Currency",
+   "label": "Precio de alquiler por evento",
+   "description": "Precio base; se puede ajustar en cada alquiler."
   },
   {
    "fieldname": "column_break_1",
@@ -58,8 +65,13 @@
    "label": "Descripción"
   }
  ],
- "links": [],
- "modified": "2026-09-29 16:00:00.000000",
+ "links": [
+  {
+   "link_doctype": "Evento",
+   "link_fieldname": "sala"
+  }
+ ],
+ "modified": "2026-09-30 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Sala",

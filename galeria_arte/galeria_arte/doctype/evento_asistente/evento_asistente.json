@@ -1,0 +1,69 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "cliente",
+  "nombre",
+  "lugares",
+  "factura",
+  "fecha"
+ ],
+ "fields": [
+  {
+   "fieldname": "cliente",
+   "fieldtype": "Link",
+   "label": "Cliente",
+   "options": "Customer",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "nombre",
+   "fieldtype": "Data",
+   "label": "Nombre",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "lugares",
+   "fieldtype": "Int",
+   "label": "Lugares",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "factura",
+   "fieldtype": "Link",
+   "label": "Factura",
+   "options": "Sales Invoice",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Evento Asistente",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "permissions": []
+}

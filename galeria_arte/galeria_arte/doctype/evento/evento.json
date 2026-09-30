@@ -1,0 +1,373 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "nombre",
+  "tipo",
+  "estado",
+  "column_break_1",
+  "inicio",
+  "fin",
+  "company",
+  "section_lugar",
+  "todo_el_espacio",
+  "sala",
+  "column_break_2",
+  "responsable",
+  "imagen",
+  "section_desc",
+  "descripcion",
+  "section_expo",
+  "obras",
+  "section_cena",
+  "cupo",
+  "precio_boleto",
+  "column_break_3",
+  "lugares_vendidos",
+  "articulo_boleto",
+  "section_asistentes",
+  "asistentes",
+  "section_alquiler",
+  "cliente",
+  "precio_alquiler",
+  "column_break_4",
+  "vence_tentativa",
+  "factura",
+  "section_cargos",
+  "cargos",
+  "total_alquiler",
+  "section_abonos",
+  "abonos",
+  "total_abonado",
+  "column_break_5",
+  "saldo",
+  "section_cancel",
+  "motivo_cancelacion"
+ ],
+ "fields": [
+  {
+   "fieldname": "nombre",
+   "fieldtype": "Data",
+   "label": "Nombre del evento",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "tipo",
+   "fieldtype": "Select",
+   "label": "Tipo",
+   "options": "Exposición\nCena\nSubasta\nAlquiler",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "estado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Planificado\nPublicado\nTentativo\nConfirmado\nRealizado\nLiquidado\nCancelado\nVencido",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inicio",
+   "fieldtype": "Datetime",
+   "label": "Inicio",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "fin",
+   "fieldtype": "Datetime",
+   "label": "Fin",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Empresa",
+   "options": "Company",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_lugar",
+   "fieldtype": "Section Break",
+   "label": "Lugar"
+  },
+  {
+   "fieldname": "todo_el_espacio",
+   "fieldtype": "Check",
+   "label": "Todo el espacio",
+   "description": "Bloquea las tres salas."
+  },
+  {
+   "fieldname": "sala",
+   "fieldtype": "Link",
+   "label": "Sala",
+   "options": "Sala",
+   "depends_on": "eval:!doc.todo_el_espacio",
+   "mandatory_depends_on": "eval:!doc.todo_el_espacio",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "responsable",
+   "fieldtype": "Link",
+   "label": "Responsable",
+   "options": "User"
+  },
+  {
+   "fieldname": "imagen",
+   "fieldtype": "Attach Image",
+   "label": "Imagen"
+  },
+  {
+   "fieldname": "section_desc",
+   "fieldtype": "Section Break",
+   "label": "Descripción",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "descripcion",
+   "fieldtype": "Small Text",
+   "label": "Descripción"
+  },
+  {
+   "fieldname": "section_expo",
+   "fieldtype": "Section Break",
+   "label": "Obras exhibidas",
+   "depends_on": "eval:doc.tipo == 'Exposición'"
+  },
+  {
+   "fieldname": "obras",
+   "fieldtype": "Table",
+   "label": "Obras",
+   "options": "Evento Obra"
+  },
+  {
+   "fieldname": "section_cena",
+   "fieldtype": "Section Break",
+   "label": "Boletos",
+   "depends_on": "eval:doc.tipo == 'Cena'"
+  },
+  {
+   "fieldname": "cupo",
+   "fieldtype": "Int",
+   "label": "Cupo",
+   "non_negative": 1,
+   "mandatory_depends_on": "eval:doc.tipo == 'Cena'"
+  },
+  {
+   "fieldname": "precio_boleto",
+   "fieldtype": "Currency",
+   "label": "Precio del boleto (con IVA)",
+   "options": "Company:company:default_currency",
+   "mandatory_depends_on": "eval:doc.tipo == 'Cena'"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lugares_vendidos",
+   "fieldtype": "Int",
+   "label": "Lugares vendidos",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "articulo_boleto",
+   "fieldtype": "Link",
+   "label": "Artículo del boleto",
+   "options": "Item",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_asistentes",
+   "fieldtype": "Section Break",
+   "label": "Asistentes",
+   "depends_on": "eval:doc.tipo == 'Cena'"
+  },
+  {
+   "fieldname": "asistentes",
+   "fieldtype": "Table",
+   "label": "Asistentes",
+   "options": "Evento Asistente",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_alquiler",
+   "fieldtype": "Section Break",
+   "label": "Alquiler",
+   "depends_on": "eval:doc.tipo == 'Alquiler'"
+  },
+  {
+   "fieldname": "cliente",
+   "fieldtype": "Link",
+   "label": "Cliente",
+   "options": "Customer",
+   "mandatory_depends_on": "eval:doc.tipo == 'Alquiler'",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "precio_alquiler",
+   "fieldtype": "Currency",
+   "label": "Precio del alquiler",
+   "options": "Company:company:default_currency",
+   "description": "Se toma de la sala; se puede ajustar para este evento."
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vence_tentativa",
+   "fieldtype": "Date",
+   "label": "Apartado hasta",
+   "description": "Si no deja anticipo antes de esta fecha, la reserva vence.",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "factura",
+   "fieldtype": "Link",
+   "label": "Factura",
+   "options": "Sales Invoice",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_cargos",
+   "fieldtype": "Section Break",
+   "label": "Cargos adicionales",
+   "depends_on": "eval:doc.tipo == 'Alquiler'"
+  },
+  {
+   "fieldname": "cargos",
+   "fieldtype": "Table",
+   "label": "Cargos",
+   "options": "Evento Cargo"
+  },
+  {
+   "fieldname": "total_alquiler",
+   "fieldtype": "Currency",
+   "label": "Total del alquiler",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "section_abonos",
+   "fieldtype": "Section Break",
+   "label": "Anticipo y abonos",
+   "depends_on": "eval:doc.tipo == 'Alquiler'"
+  },
+  {
+   "fieldname": "abonos",
+   "fieldtype": "Table",
+   "label": "Abonos",
+   "options": "Evento Abono",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_abonado",
+   "fieldtype": "Currency",
+   "label": "Total abonado",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "saldo",
+   "fieldtype": "Currency",
+   "label": "Saldo",
+   "options": "Company:company:default_currency",
+   "read_only": 1,
+   "description": "Debe quedar en cero antes del evento."
+  },
+  {
+   "fieldname": "section_cancel",
+   "fieldtype": "Section Break",
+   "label": "Cancelación",
+   "depends_on": "eval:['Cancelado','Vencido'].includes(doc.estado)"
+  },
+  {
+   "fieldname": "motivo_cancelacion",
+   "fieldtype": "Small Text",
+   "label": "Motivo",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-30 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Evento",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "EVT-.####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "nombre",
+ "show_title_field_in_link": 1,
+ "search_fields": "nombre,tipo,estado",
+ "image_field": "imagen",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  }
+ ]
+}

@@ -83,6 +83,8 @@ galeria.obras.reservar = async function (obra, on_done) {
 				d.hide();
 				galeria.obras.reserva_lista(r.reservacion, o.titulo);
 				on_done && on_done(r);
+			} catch (e) {
+				// El servidor ya mostró el mensaje de error.
 			} finally {
 				d.get_primary_btn().prop("disabled", false);
 			}
@@ -135,6 +137,8 @@ galeria.obras.abonar = function (reservacion, saldo, on_done) {
 						indicator: "green",
 					});
 					on_done && on_done(r);
+				} catch (e) {
+					// El servidor ya mostró el mensaje de error.
 				} finally {
 					d.get_primary_btn().prop("disabled", false);
 				}
@@ -303,6 +307,8 @@ galeria.obras.vender = async function (obra, on_done) {
 				d.hide();
 				galeria.obras.venta_lista(r);
 				on_done && on_done(r);
+			} catch (e) {
+				// El servidor ya mostró el mensaje de error.
 			} finally {
 				d.get_primary_btn().prop("disabled", false);
 			}

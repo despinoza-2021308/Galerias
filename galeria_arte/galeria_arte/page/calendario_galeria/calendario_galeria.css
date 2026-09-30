@@ -1,0 +1,165 @@
+/* Calendario de la galería (FullCalendar v3). Variables de tema de Frappe. */
+
+.cal-gal-leyenda {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: center;
+	margin-bottom: var(--margin-md);
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.cal-gal-leyenda .muestra {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	margin-right: 6px;
+	vertical-align: -1px;
+}
+
+.cal-gal-leyenda .muestra.tentativo {
+	background: repeating-linear-gradient(45deg, #2563eb, #2563eb 3px, #93b4f5 3px, #93b4f5 6px);
+}
+
+.cal-gal {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--padding-md);
+}
+
+/* Encabezado y botones de FullCalendar con el estilo de Frappe */
+.cal-gal .fc-toolbar h2 {
+	font-size: var(--text-xl);
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.cal-gal .fc-toolbar h2::first-letter {
+	text-transform: uppercase;
+}
+
+.cal-gal .fc-button {
+	background: var(--control-bg);
+	border: 1px solid var(--border-color);
+	color: var(--text-color);
+	text-shadow: none;
+	box-shadow: none;
+	height: 32px;
+	padding: 0 12px;
+	text-transform: capitalize;
+}
+
+.cal-gal .fc-prev-button,
+.cal-gal .fc-next-button {
+	font-size: 20px;
+	line-height: 1;
+	min-width: 36px;
+}
+
+.cal-gal .fc-button.fc-state-active,
+.cal-gal .fc-button:active {
+	background: var(--primary) !important;
+	background-image: none !important;
+	border-color: var(--primary) !important;
+	color: #fff !important;
+}
+
+.cal-gal .fc-button.fc-state-disabled {
+	opacity: 0.5;
+}
+
+.cal-gal .fc-unthemed td,
+.cal-gal .fc-unthemed th,
+.cal-gal .fc-unthemed thead,
+.cal-gal .fc-unthemed tbody,
+.cal-gal .fc-unthemed .fc-row,
+.cal-gal .fc-unthemed .fc-divider,
+.cal-gal .fc-unthemed .fc-list-heading td {
+	border-color: var(--border-color);
+}
+
+.cal-gal .fc-unthemed .fc-today {
+	background: var(--control-bg);
+}
+
+.cal-gal .fc-unthemed .fc-list-heading td,
+.cal-gal .fc-unthemed .fc-list-item:hover td {
+	background: var(--control-bg);
+}
+
+.cal-gal .fc-day-header {
+	padding: 6px 0;
+	color: var(--text-muted);
+	font-weight: 500;
+	text-transform: capitalize;
+}
+
+.cal-gal .fc-day-number {
+	color: var(--text-color);
+	padding: 4px 6px !important;
+}
+
+.cal-gal .fc-event {
+	border-radius: 4px;
+	padding: 1px 4px;
+	font-size: 12px;
+	cursor: pointer;
+	border-width: 0;
+}
+
+.cal-gal .fc-time-grid-event .fc-content {
+	white-space: normal;
+}
+
+/* Alquiler tentativo: rayado (aparta la fecha, aún sin anticipo) */
+.cal-gal .fc-event.gal-ev-tentativo {
+	background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28) 6px, transparent 6px, transparent 12px);
+}
+
+/* Alquiler confirmado con saldo pendiente y fecha cercana */
+.cal-gal .fc-event.gal-ev-alerta {
+	box-shadow: 0 0 0 2px var(--red-500, #e24c4c);
+}
+
+.cal-gal .fc-event.gal-ev-inactivo {
+	opacity: 0.45;
+	text-decoration: line-through;
+}
+
+.cal-gal .fc-event .gal-ev-lugar {
+	display: block;
+	opacity: 0.9;
+	font-size: 11px;
+}
+
+.cal-gal .fc-list-item-title .gal-ev-lugar {
+	display: inline;
+	margin-left: 8px;
+	color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+	.cal-gal {
+		padding: var(--padding-sm);
+	}
+	.cal-gal .fc-toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.cal-gal .fc-toolbar .fc-left,
+	.cal-gal .fc-toolbar .fc-right,
+	.cal-gal .fc-toolbar .fc-center {
+		float: none;
+	}
+	.cal-gal .fc-toolbar .fc-center {
+		order: -1;
+		width: 100%;
+	}
+	.cal-gal .fc-toolbar h2 {
+		font-size: var(--text-lg);
+	}
+}
