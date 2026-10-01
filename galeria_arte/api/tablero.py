@@ -48,16 +48,21 @@ def datos(desde: str | None = None, hasta: str | None = None) -> dict:
 	anteriores = _facturas(c, ant_desde, ant_hasta)
 	items = _items(c)
 
+	cobros = _cobros(c)
+	resumen = _resumen(c, facturas, anteriores, items)
+	# Vencido según las fechas de las cuotas (no depende de que ERPNext ya haya
+	# marcado la factura como Vencida en su tarea nocturna).
+	resumen["vencido"] = flt(sum(t["monto"] for t in cobros["antiguedad"] if t["tramo"] != "Al día"), 2)
 	return {
 		"desde": desde,
 		"hasta": hasta,
 		"anterior": {"desde": ant_desde, "hasta": ant_hasta},
-		"resumen": _resumen(c, facturas, anteriores, items),
+		"resumen": resumen,
 		"areas": _areas(facturas, desde, hasta),
 		"productos": _productos(c, facturas, items),
 		"arte": _arte(c, items),
 		"eventos": _eventos(c, facturas),
-		"cobros": _cobros(c),
+		"cobros": cobros,
 		"clientes": _clientes(c, facturas),
 	}
 
@@ -130,8 +135,7 @@ def _resumen(c, facturas, anteriores, items) -> dict:
 	)
 	pendiente = frappe.db.sql(
 		"""
-		SELECT COALESCE(SUM(outstanding_amount), 0) AS total,
-			COALESCE(SUM(CASE WHEN status = 'Overdue' THEN outstanding_amount ELSE 0 END), 0) AS vencido
+		SELECT COALESCE(SUM(outstanding_amount), 0) AS total
 		FROM `tabSales Invoice`
 		WHERE company = %(company)s AND docstatus = 1 AND is_return = 0 AND name LIKE %(serie)s
 			AND outstanding_amount > 0
@@ -163,7 +167,6 @@ def _resumen(c, facturas, anteriores, items) -> dict:
 		"ticket_promedio": flt(ventas / len(facturas), 2) if facturas else 0,
 		"cobrado": cobrado,
 		"por_cobrar": flt(pendiente.total, 2),
-		"vencido": flt(pendiente.vencido, 2),
 		"por_pagar_artistas": por_pagar_artistas,
 		"obras_por_liquidar": len(listas),
 		"liquidaciones_por_pagar": liquidaciones.n or 0,

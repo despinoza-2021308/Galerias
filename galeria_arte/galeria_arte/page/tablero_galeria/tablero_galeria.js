@@ -379,12 +379,18 @@ class TableroGaleria {
 					${this.dato(__("Sobre el precio inicial"), s.alza === null ? "—" : `${s.alza > 0 ? "+" : ""}${s.alza}%`, s.alza > 0 ? "text-success" : "")}
 				</div>
 				<div class="small text-muted">${[
-					s.no_vendidas ? __("{0} no vendidas", [s.no_vendidas]) : "",
-					s.pendientes ? __("{0} sin resultado", [s.pendientes]) : "",
+					s.no_vendidas ? galeria.pagos.cuantos(s.no_vendidas, __("no vendida"), __("no vendidas")) : "",
+					s.pendientes ? galeria.pagos.cuantos(s.pendientes, __("sin resultado"), __("sin resultado")) : "",
 				]
 					.filter(Boolean)
 					.join(" · ")}</div>
-				${s.no_pagaron ? `<div class="small text-danger">${__("{0} ganadores no pagaron a tiempo", [s.no_pagaron])}</div>` : ""}`
+				${
+					s.no_pagaron
+						? `<div class="small text-danger">${
+								s.no_pagaron === 1 ? __("1 ganador no pagó a tiempo") : __("{0} ganadores no pagaron a tiempo", [s.no_pagaron])
+						  }</div>`
+						: ""
+				}`
 			: this.vacio(__("No hubo subastas en el período."));
 		return this.seccion(
 			__("Eventos y subastas"),
