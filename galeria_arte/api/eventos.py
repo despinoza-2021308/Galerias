@@ -97,6 +97,10 @@ def cancelar(evento: str, motivo: str | None = None) -> dict:
 	ev.estado = "Cancelado"
 	ev.motivo_cancelacion = motivo
 	ev.save()
+	if ev.tipo == CENA:
+		from galeria_arte.api.boletos import anular_boletos
+
+		anular_boletos({"evento": ev.name})
 	return {
 		"evento": ev.name,
 		"estado": ev.estado,
@@ -112,7 +116,18 @@ def cancelar(evento: str, motivo: str | None = None) -> dict:
 
 
 @frappe.whitelist()
-def vender_boletos(evento: str, cantidad: int, pagos, cliente: str | None = None) -> dict:
+def vender_boletos(
+	evento: str,
+	cantidad: int,
+	pagos,
+	cliente: str | None = None,
+	asistentes=None,
+	correo: str | None = None,
+) -> dict:
+	"""asistentes: [{nombre, correo?}], uno por lugar (cada uno recibe su boleto con QR).
+	correo: del comprador, recibe todos los boletos."""
+	from galeria_arte.api.boletos import crear_boletos, enviar_correos, hay_cuenta_de_correo
+
 	ev = _evento(evento)
 	if ev.tipo != CENA:
 		frappe.throw(_("Solo las cenas venden boletos."))
@@ -127,6 +142,18 @@ def vender_boletos(evento: str, cantidad: int, pagos, cliente: str | None = None
 	if cantidad > disponibles:
 		frappe.throw(_("Solo quedan {0} lugares.").format(disponibles))
 
+	asistentes = [
+		{"nombre": (a.get("nombre") or "").strip(), "correo": (a.get("correo") or "").strip() or None}
+		for a in (_cargar(asistentes) or [])
+	]
+	if asistentes and len(asistentes) != cantidad:
+		frappe.throw(_("Indique el nombre de cada asistente ({0} lugares).").format(cantidad))
+	if any(not a["nombre"] for a in asistentes):
+		frappe.throw(_("Cada boleto lleva el nombre del asistente: complete todos los nombres."))
+	for a in asistentes + [{"correo": correo}]:
+		if a.get("correo"):
+			frappe.utils.validate_email_address(a["correo"], throw=True)
+
 	total = flt(cantidad * flt(ev.precio_boleto), 2)
 	pagos = [p for p in (_cargar(pagos) or []) if flt(p.get("monto")) > 0]
 	pagado = flt(sum(flt(p["monto"]) for p in pagos), 2)
@@ -140,11 +167,12 @@ def vender_boletos(evento: str, cantidad: int, pagos, cliente: str | None = None
 		pagos=pagos,
 		campos={"galeria_evento": ev.name},
 	)
+	comprador = frappe.db.get_value("Sales Invoice", estado["factura"], "customer")
 	ev.reload()
 	ev.append(
 		"asistentes",
 		{
-			"cliente": frappe.db.get_value("Sales Invoice", estado["factura"], "customer"),
+			"cliente": comprador,
 			"nombre": estado["cliente"],
 			"lugares": cantidad,
 			"factura": estado["factura"],
@@ -152,7 +180,26 @@ def vender_boletos(evento: str, cantidad: int, pagos, cliente: str | None = None
 		},
 	)
 	ev.save()
-	estado.update({"evento": ev.name, "lugares_vendidos": ev.lugares_vendidos, "cupo": ev.cupo})
+	# Sin nombres (ventas antiguas o rápidas), cada boleto lleva el del comprador.
+	asistentes = asistentes or [{"nombre": estado["cliente"], "correo": None} for _i in range(cantidad)]
+	boletos = crear_boletos(ev, estado["factura"], comprador, asistentes)
+	correos = []
+	if correo or any(a.get("correo") for a in asistentes):
+		try:
+			correos = enviar_correos(boletos, correo)
+		except Exception:
+			# La venta ya está hecha: un problema con el correo no la deshace.
+			frappe.log_error(title="Boletos: no se pudo preparar el correo")
+	estado.update(
+		{
+			"evento": ev.name,
+			"lugares_vendidos": ev.lugares_vendidos,
+			"cupo": ev.cupo,
+			"boletos": boletos,
+			"correos": correos,
+			"hay_cuenta_de_correo": hay_cuenta_de_correo(),
+		}
+	)
 	return estado
 
 
@@ -443,7 +490,10 @@ def al_anular_factura(doc, method=None):
 		if ev.estado in ("Liquidado", "Realizado"):
 			ev.estado = "Confirmado"
 	elif ev.tipo == CENA:
+		from galeria_arte.api.boletos import anular_boletos
+
 		ev.set("asistentes", [a for a in ev.asistentes if a.factura != doc.name])
+		anular_boletos({"factura": doc.name})
 	elif ev.tipo == SUBASTA:
 		# La obra vuelve a quedar adjudicada al comprador, con el mismo plazo.
 		for l in ev.lotes:
@@ -634,8 +684,15 @@ def resumen(evento: str) -> dict:
 				"precio_boleto": ev.precio_boleto,
 				"ingresos": ingresos,
 				"asistentes": [{"nombre": a.nombre, "lugares": a.lugares, "factura": a.factura} for a in ev.asistentes],
+				"boletos": frappe.get_all(
+					"Boleto",
+					filters={"evento": ev.name},
+					fields=["name", "asistente", "estado", "factura", "correo", "correo_enviado", "codigo", "ingreso"],
+					order_by="creation asc",
+				),
 			}
 		)
+		datos["llegaron"] = len([b for b in datos["boletos"] if b.estado == "Usado"])
 	elif ev.tipo == ALQUILER:
 		datos.update(
 			{

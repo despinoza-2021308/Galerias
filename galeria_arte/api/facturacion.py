@@ -388,7 +388,16 @@ def estado_factura(factura: str) -> dict:
 		"cuotas_pagadas": len([c for c in cuotas if c["estado"] == "Pagada"]),
 		"proxima": proxima,
 		"pagos": pagos,
+		"obras_por_liquidar": _obras_por_liquidar(si),
 	}
+
+
+def _obras_por_liquidar(si) -> list:
+	if flt(si.outstanding_amount) > 0.005 or si.docstatus != 1:
+		return []
+	from galeria_arte.api.liquidaciones import listas_por_factura
+
+	return listas_por_factura([si.name]).get(si.name, [])
 
 
 @frappe.whitelist()

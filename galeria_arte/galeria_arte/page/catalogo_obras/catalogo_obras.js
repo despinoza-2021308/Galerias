@@ -52,6 +52,7 @@ class CatalogoObras {
 		};
 		page.set_primary_action(__("Nueva obra"), () => frappe.new_doc("Obra de Arte"), "add");
 		page.set_secondary_action(__("Actualizar"), () => this.cargar(), "refresh");
+		page.add_inner_button(__("Imprimir fichas"), () => this.imprimir_fichas());
 		page.add_menu_item(__("Venta de obras"), () => frappe.set_route("venta-obras"));
 		page.add_menu_item(__("Artistas"), () => frappe.set_route("List", "Artista"));
 		page.add_menu_item(__("Lista de obras"), () => frappe.set_route("List", "Obra de Arte"));
@@ -115,7 +116,46 @@ class CatalogoObras {
 		this.$conteo.html(html);
 	}
 
+	imprimir_fichas() {
+		const visibles = (this.obras_visibles || []).map((o) => o.name);
+		const d = new frappe.ui.Dialog({
+			title: __("Imprimir fichas"),
+			fields: [
+				{
+					fieldtype: "Select",
+					fieldname: "cuales",
+					label: __("¿Qué fichas?"),
+					options: [
+						{ value: "visibles", label: __("Las obras que se ven en el catálogo ({0})", [visibles.length]) },
+						{ value: "exposicion", label: __("Las obras de una exposición") },
+					],
+					default: "visibles",
+				},
+				{
+					fieldtype: "Link",
+					fieldname: "evento",
+					label: __("Exposición"),
+					options: "Evento",
+					get_query: () => ({ filters: { tipo: "Exposición" } }),
+					depends_on: "eval:doc.cuales == 'exposicion'",
+					mandatory_depends_on: "eval:doc.cuales == 'exposicion'",
+				},
+			],
+			primary_action_label: __("Imprimir"),
+			primary_action: async (v) => {
+				const obras =
+					v.cuales === "exposicion"
+						? await frappe.xcall("galeria_arte.api.fichas.obras_de_exposicion", { evento: v.evento })
+						: visibles;
+				d.hide();
+				galeria.obras.imprimir_fichas(obras);
+			},
+		});
+		d.show();
+	}
+
 	pintar_obras(obras) {
+		this.obras_visibles = obras;
 		if (!obras.length) {
 			this.$grid.html(
 				`<div class="cat-obras-vacio" style="grid-column: 1 / -1">${__("No hay obras con esos filtros.")}</div>`

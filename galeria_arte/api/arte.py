@@ -398,7 +398,11 @@ def panel() -> dict:
 		):
 			obras_por_factura.setdefault(ob.factura, []).append(ob)
 	cuotas = resumen_cuotas([v.name for v in ventas if v.payment_terms_template])
+	from galeria_arte.api.liquidaciones import listas_por_factura
+
+	por_liquidar = listas_por_factura([v.name for v in ventas if flt(v.outstanding_amount) <= 0.005])
 	for v in ventas:
+		v.por_liquidar = por_liquidar.get(v.name, [])
 		v.cuotas = cuotas.get(v.name)
 		v.pagado = flt(v.grand_total - v.outstanding_amount, 2)
 		v.obras = obras_por_factura.get(v.name, [])

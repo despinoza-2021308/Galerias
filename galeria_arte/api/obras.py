@@ -241,6 +241,11 @@ def ficha_coleccionista(cliente: str) -> dict:
 		fields=[*campos_obra, "fecha_venta", "precio_vendido", "factura"],
 		order_by="fecha_venta desc",
 	)
+	from galeria_arte.api.liquidaciones import listas_por_factura
+
+	listas = {x["obra"] for filas in listas_por_factura([o.factura for o in compradas if o.factura]).values() for x in filas}
+	for o in compradas:
+		o.por_liquidar = o.name in listas
 	reservadas = frappe.get_all(
 		"Obra de Arte",
 		filters={"reservada_por": cliente, "estado": RESERVADA},

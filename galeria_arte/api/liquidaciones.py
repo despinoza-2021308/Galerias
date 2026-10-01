@@ -93,6 +93,19 @@ def estado_obra(obra: str) -> dict | None:
 	}
 
 
+def listas_por_factura(facturas: list) -> dict:
+	"""Obras de esas facturas que el cliente ya pagó y falta liquidar al artista
+	(para ofrecer el botón "Liquidar al artista")."""
+	nombres = frappe.get_all("Obra de Arte", filters={"factura": ["in", list(facturas) or [""]]}, pluck="name")
+	salida = {}
+	for o in _obras_vendidas(obras=nombres) if nombres else []:
+		if o.estado_pago == POR_LIQUIDAR:
+			salida.setdefault(o.factura, []).append(
+				{"obra": o.name, "titulo": o.titulo, "artista": o.artista, "monto_artista": o.monto_artista}
+			)
+	return salida
+
+
 @frappe.whitelist()
 def por_liquidar(artista: str) -> list:
 	"""Obras del artista listas para pagarle: vendidas, cobradas por completo y sin liquidar."""

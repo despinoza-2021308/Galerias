@@ -91,6 +91,8 @@ galeria.pagos.registrar = async function (factura, on_done) {
 					indicator: "green",
 				});
 				on_done && on_done(r);
+				// Si con este pago la obra quedó pagada, se ofrece liquidar al artista.
+				galeria.artistas.ofrecer_liquidar(r.obras_por_liquidar, () => on_done && on_done(r));
 			} catch (e) {
 				// El servidor ya mostró el mensaje de error.
 			} finally {

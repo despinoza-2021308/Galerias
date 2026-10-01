@@ -45,7 +45,8 @@
   "liquidacion",
   "artista_pagado",
   "section_erp",
-  "articulo"
+  "articulo",
+  "codigo_publico"
  ],
  "fields": [
   {
@@ -323,6 +324,15 @@
    "description": "Se crea automáticamente para poder facturar la obra.",
    "read_only": 1,
    "no_copy": 1
+  },
+  {
+   "fieldname": "codigo_publico",
+   "fieldtype": "Data",
+   "label": "Código público",
+   "description": "Identifica la página pública de la obra (la que abre el QR de la ficha).",
+   "read_only": 1,
+   "no_copy": 1,
+   "unique": 1
   }
  ],
  "links": [
@@ -331,7 +341,7 @@
    "link_fieldname": "obra"
   }
  ],
- "modified": "2026-09-30 23:00:00.000000",
+ "modified": "2026-10-01 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Galeria Arte",
  "name": "Obra de Arte",
@@ -382,5 +392,6 @@
    "write": 1
   }
  ],
- "track_changes": 1
+ "track_changes": 1,
+ "default_print_format": "Ficha de Obra"
 }

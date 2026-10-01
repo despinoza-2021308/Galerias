@@ -79,6 +79,11 @@ class VentaObras {
 		if (accion === "recibo") galeria.obras.imprimir("Reservacion de Obra", id, "Recibo de Reserva");
 		if (accion === "ver-reserva") frappe.set_route("Form", "Reservacion de Obra", id);
 		if (accion === "cobrar") galeria.pagos.registrar(id, recargar);
+		if (accion === "liquidar") {
+			const venta = this.datos.ventas.find((v) => v.name === id);
+			const o = venta && venta.por_liquidar[0];
+			if (o) galeria.artistas.liquidar(o.artista, recargar, venta.por_liquidar.filter((x) => x.artista === o.artista).map((x) => x.obra));
+		}
 		if (accion === "estado") galeria.pagos.estado_cuenta(id);
 		if (accion === "factura") galeria.obras.imprimir("Sales Invoice", id, "Factura Galería");
 		if (accion === "cobrar-subasta") galeria.eventos.cobrar_subasta($el.attr("data-evento"), id, recargar);
@@ -359,6 +364,7 @@ class VentaObras {
 					<td class="text-right ${flt(v.outstanding_amount) ? "text-danger" : "text-muted"}">${m(v.outstanding_amount)}</td>
 					<td class="vo-acciones-fila">
 						${flt(v.outstanding_amount) > 0 ? btn("cobrar", v.name, __("Cobrar"), "btn-primary") : ""}
+						${v.por_liquidar && v.por_liquidar.length ? btn("liquidar", v.name, __("Liquidar al artista"), "btn-primary") : ""}
 						${btn("estado", v.name, __("Estado de cuenta"))}
 						${btn("factura", v.name, __("Imprimir"))}
 					</td>

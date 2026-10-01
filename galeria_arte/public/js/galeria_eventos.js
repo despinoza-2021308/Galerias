@@ -178,12 +178,18 @@ galeria.eventos.resumen = async function (evento, on_done) {
 		accion(__("Publicar"), () => galeria.eventos.publicar(e.name, recargar), e.tipo !== "Subasta" || e.lotes.length > 0);
 	if (e.tipo === "Cena" && e.estado === "Publicado" && e.disponibles > 0)
 		accion(__("Vender boletos"), () => galeria.eventos.vender_boletos(e.name, recargar), true);
+	if (e.tipo === "Cena" && (e.boletos || []).some((b) => b.estado !== "Anulado")) {
+		accion(__("Check-in"), () => frappe.set_route("check-in-galeria", { evento: e.name }));
+		accion(__("Imprimir boletos"), () => galeria.boletos.imprimir(e.boletos.filter((b) => b.estado === "Válido").map((b) => b.name)));
+	}
 	if (e.tipo === "Alquiler" && e.estado === "Tentativo")
 		accion(__("Confirmar con anticipo"), () => galeria.eventos.confirmar(e.name, e.total, recargar), true);
 	if (e.tipo === "Alquiler" && e.estado === "Confirmado")
 		accion(__("Registrar abono"), () => galeria.eventos.abonar(e.name, e.saldo, recargar), true);
 	if ((e.tipo !== "Alquiler" && ["Planificado", "Publicado"].includes(e.estado)) || (e.tipo === "Alquiler" && e.estado === "Liquidado"))
 		accion(__("Marcar realizado"), () => galeria.eventos.realizado(e.name, e.tipo === "Subasta" ? reabrir : recargar));
+	if (e.tipo === "Exposición" && (e.obras || []).length)
+		accion(__("Imprimir fichas"), () => galeria.obras.imprimir_fichas(e.obras.map((o) => o.obra)));
 	if (!["Cancelado", "Vencido", "Realizado", "Liquidado"].includes(e.estado))
 		accion(__("Cancelar evento"), () => galeria.eventos.cancelar(e.name, e, recargar));
 
@@ -210,16 +216,7 @@ galeria.eventos.resumen = async function (evento, on_done) {
 		)}</span><span class="text-muted">${__("Boleto")}: ${m(e.precio_boleto)} · ${__("Ingresos")}: ${m(e.ingresos)}</span></div>
 				<div class="gal-progreso-barra"><div style="width:${pct}%"></div></div>
 			</div>
-			${
-				e.asistentes.length
-					? `<table class="gal-cuotas"><thead><tr><th>${__("Asistente")}</th><th class="text-right">${__("Lugares")}</th><th>${__("Factura")}</th></tr></thead><tbody>
-					${e.asistentes
-						.map(
-							(a) => `<tr><td>${esc(a.nombre || "")}</td><td class="text-right">${a.lugares}</td>
-							<td><a href="/app/sales-invoice/${encodeURIComponent(a.factura || "")}">${esc(a.factura || "")}</a></td></tr>`
-						)
-						.join("")}</tbody></table>`
-					: `<p class="text-muted">${__("Aún no hay boletos vendidos.")}</p>`
+			${galeria.boletos.html_lista(e)}
 			}`;
 	}
 	if (e.tipo === "Alquiler") {
@@ -393,6 +390,7 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 		frappe.xcall(`${EV_API}.datos_formulario`),
 	]);
 	const m = galeria.pagos.moneda;
+	const esc = frappe.utils.escape_html;
 	let editor = null;
 	const d = new frappe.ui.Dialog({
 		title: __("Boletos · {0}", [e.nombre]),
@@ -406,16 +404,40 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 				default: 1,
 				reqd: 1,
 				description: __("Quedan {0} lugares · {1} cada boleto", [e.disponibles, m(e.precio_boleto)]),
-				onchange: () => total_a_editor(),
+				onchange: () => {
+					pintar_asistentes();
+					total_a_editor();
+				},
 			},
 			{ fieldtype: "Column Break" },
-			{ fieldtype: "Link", fieldname: "cliente", label: __("Cliente"), options: "Customer", default: datos.cliente_defecto },
+			{
+				fieldtype: "Link",
+				fieldname: "cliente",
+				label: __("Comprador"),
+				options: "Customer",
+				default: datos.cliente_defecto,
+				onchange: () => datos_comprador(),
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "correo",
+				label: __("Correo del comprador"),
+				options: "Email",
+				description: __("Recibe todos los boletos."),
+			},
+			{ fieldtype: "Section Break", label: __("Asistentes (cada boleto lleva su nombre)") },
+			{ fieldtype: "HTML", fieldname: "asistentes" },
 			{ fieldtype: "Section Break", label: __("Pago (los boletos se pagan al reservar)") },
 			{ fieldtype: "HTML", fieldname: "pagos" },
 			{ fieldtype: "HTML", fieldname: "total" },
 		],
 		primary_action_label: __("Vender boletos"),
 		primary_action: async (v) => {
+			const asistentes = leer_asistentes();
+			if (asistentes.some((a) => !a.nombre)) {
+				frappe.msgprint(__("Escriba el nombre de cada asistente."));
+				return;
+			}
 			d.get_primary_btn().prop("disabled", true);
 			try {
 				const r = await frappe.xcall(`${EV_API}.vender_boletos`, {
@@ -423,13 +445,11 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 					cantidad: v.cantidad,
 					cliente: v.cliente,
 					pagos: editor.leer(),
+					asistentes,
+					correo: v.correo || null,
 				});
 				d.hide();
-				frappe.show_alert({
-					message: __("{0} lugares vendidos ({1}/{2}) · factura {3}", [v.cantidad, r.lugares_vendidos, r.cupo, r.factura]),
-					indicator: "green",
-				});
-				on_done && on_done(r);
+				galeria.boletos.vendidos(r, on_done);
 			} catch (e) {
 				// El servidor ya mostró el mensaje de error.
 			} finally {
@@ -437,6 +457,42 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 			}
 		},
 	});
+	const $asistentes = () => d.fields_dict.asistentes.$wrapper;
+	const leer_asistentes = () =>
+		$asistentes()
+			.find(".gal-asistente")
+			.map((_, el) => ({
+				nombre: ($(el).find("[data-nombre]").val() || "").trim(),
+				correo: ($(el).find("[data-correo]").val() || "").trim() || null,
+			}))
+			.get();
+	// Rehace las filas al cambiar la cantidad, conservando lo ya escrito.
+	const pintar_asistentes = () => {
+		const previos = leer_asistentes();
+		const n = Math.max(0, Math.min(cint(d.get_value("cantidad")), e.disponibles));
+		const filas = [];
+		for (let i = 0; i < n; i++) {
+			const a = previos[i] || { nombre: i === 0 ? d.nombre_comprador || "" : "", correo: "" };
+			filas.push(`<div class="gal-asistente" style="display: grid; grid-template-columns: 28px minmax(0, 1.2fr) minmax(0, 1fr); gap: 6px; align-items: center; margin-bottom: 6px">
+				<span class="text-muted">${i + 1}.</span>
+				<input type="text" class="form-control" data-nombre placeholder="${__("Nombre del asistente")}" value="${esc(a.nombre || "")}">
+				<input type="email" class="form-control" data-correo placeholder="${__("Correo (opcional)")}" value="${esc(a.correo || "")}">
+			</div>`);
+		}
+		$asistentes().html(filas.join("") || `<div class="text-muted">${__("Indique cuántos lugares.")}</div>`);
+	};
+	const datos_comprador = async () => {
+		const cliente = d.get_value("cliente");
+		d.nombre_comprador = "";
+		if (cliente && cliente !== datos.cliente_defecto) {
+			const r = await frappe.db.get_value("Customer", cliente, ["customer_name", "email_id"]);
+			const c = r.message || {};
+			d.nombre_comprador = c.customer_name || "";
+			if (c.email_id && !d.get_value("correo")) d.set_value("correo", c.email_id);
+			const primero = $asistentes().find("[data-nombre]").first();
+			if (primero.length && !primero.val()) primero.val(d.nombre_comprador);
+		}
+	};
 	const total = () => flt(cint(d.get_value("cantidad")) * flt(e.precio_boleto), 2);
 	const actualizar = () => {
 		const t = total();
@@ -455,12 +511,131 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 		actualizar();
 	};
 	d.fields_dict.info.$wrapper.html(
-		`<div class="gal-desglose"><span>${galeria.eventos.rango(e.inicio, e.fin)}</span><span>${frappe.utils.escape_html(e.lugar || "")}</span>
+		`<div class="gal-desglose"><span>${galeria.eventos.rango(e.inicio, e.fin)}</span><span>${esc(e.lugar || "")}</span>
 		<span>${__("{0} de {1} lugares vendidos", [e.vendidos, e.cupo])}</span></div>`
 	);
 	d.show();
 	editor = galeria.pagos.editor(d.fields_dict.pagos.$wrapper, datos.modos_pago, actualizar);
+	pintar_asistentes();
 	total_a_editor();
+};
+
+// ---------------------------------------------------------------------------
+// Boletos con QR
+// ---------------------------------------------------------------------------
+
+frappe.provide("galeria.boletos");
+
+// Boletos de una cena en el resumen del evento.
+galeria.boletos.html_lista = function (e) {
+	const esc = frappe.utils.escape_html;
+	const boletos = e.boletos || [];
+	if (!boletos.length) return `<p class="text-muted">${__("Aún no hay boletos vendidos.")}</p>`;
+	const colores = { Válido: "green", Usado: "blue", Anulado: "red" };
+	const etiquetas = { Válido: __("Válido"), Usado: __("Llegó"), Anulado: __("Anulado") };
+	return `<div class="gal-dato-label" style="margin-bottom: 4px">${__("Llegaron {0} de {1}", [
+		e.llegaron || 0,
+		boletos.filter((b) => b.estado !== "Anulado").length,
+	])}</div>
+		<div style="max-height: 320px; overflow-y: auto"><table class="gal-cuotas"><thead><tr><th>${__("Asistente")}</th><th>${__("Estado")}</th><th>${__("Factura")}</th><th></th></tr></thead><tbody>
+		${boletos
+			.map(
+				(b) => `<tr><td>${esc(b.asistente)}<span class="gal-sub">${esc(b.name)}${b.correo ? " · " + esc(b.correo) : ""}</span></td>
+				<td><span class="indicator-pill ${colores[b.estado] || "gray"}">${etiquetas[b.estado] || esc(b.estado)}</span></td>
+				<td><a href="/app/sales-invoice/${encodeURIComponent(b.factura || "")}">${esc(b.factura || "")}</a></td>
+				<td class="text-right"><a href="${galeria.boletos.url(b.codigo)}" target="_blank">${__("Ver")}</a></td></tr>`
+			)
+			.join("")}</tbody></table></div>`;
+};
+
+galeria.boletos.url = function (codigo) {
+	return `${frappe.urllib.get_base_url()}/boleto?c=${encodeURIComponent(codigo)}`;
+};
+
+galeria.boletos.imprimir = async function (boletos) {
+	if (!boletos || !boletos.length) return;
+	// La ventana se abre antes de la llamada para que el navegador no la bloquee.
+	const ventana = window.open("", "_blank");
+	try {
+		const html = await frappe.xcall("galeria_arte.api.boletos.html_boletos", { boletos });
+		ventana.document.open();
+		ventana.document.write(html);
+		ventana.document.close();
+	} catch (e) {
+		ventana && ventana.close();
+	}
+};
+
+galeria.boletos.enviar = function (boletos, correo) {
+	const d = new frappe.ui.Dialog({
+		title: __("Enviar boletos por correo"),
+		fields: [
+			{
+				fieldtype: "Data",
+				fieldname: "correo",
+				label: __("Correo"),
+				options: "Email",
+				default: correo || "",
+				description: __("Además, cada asistente que tenga correo recibe el suyo."),
+			},
+		],
+		primary_action_label: __("Enviar"),
+		primary_action: async (v) => {
+			const r = await frappe.xcall("galeria_arte.api.boletos.enviar", { boletos, correo: v.correo || null });
+			d.hide();
+			galeria.boletos.aviso_correo(r.enviados, r.hay_cuenta);
+		},
+	});
+	d.show();
+};
+
+galeria.boletos.aviso_correo = function (enviados, hay_cuenta) {
+	if (!enviados || !enviados.length) return;
+	frappe.show_alert({
+		message: hay_cuenta
+			? __("Boletos enviados a: {0}", [enviados.join(", ")])
+			: __("Correo preparado para {0}. Se enviará cuando se configure la cuenta de correo de salida.", [enviados.join(", ")]),
+		indicator: hay_cuenta ? "green" : "orange",
+	}, 8);
+};
+
+// Después de vender: los boletos con sus enlaces, para imprimir o compartir.
+galeria.boletos.vendidos = async function (r, on_done) {
+	const lista = await frappe.xcall("frappe.client.get_list", {
+		doctype: "Boleto",
+		filters: { name: ["in", r.boletos] },
+		fields: ["name", "asistente", "codigo", "correo"],
+		order_by: "creation asc",
+		limit_page_length: 100,
+	});
+	const esc = frappe.utils.escape_html;
+	const d = new frappe.ui.Dialog({
+		title: __("Boletos vendidos"),
+		size: "large",
+		fields: [{ fieldtype: "HTML", fieldname: "html" }],
+		primary_action_label: __("Imprimir boletos"),
+		primary_action: () => galeria.boletos.imprimir(r.boletos),
+		secondary_action_label: __("Cerrar"),
+		secondary_action: () => d.hide(),
+	});
+	d.onhide = () => on_done && on_done(r);
+	d.fields_dict.html.$wrapper.html(`
+		<div class="gal-desglose">
+			<span>${__("Factura")}: <a href="/app/sales-invoice/${encodeURIComponent(r.factura)}">${esc(r.factura)}</a></span>
+			<span>${__("{0} de {1} lugares vendidos", [r.lugares_vendidos, r.cupo])}</span>
+		</div>
+		<table class="table gal-tabla" style="margin: 0"><tbody>
+		${lista
+			.map(
+				(b) => `<tr><td>${esc(b.asistente)}<span class="gal-sub">${esc(b.name)}${b.correo ? " · " + esc(b.correo) : ""}</span></td>
+				<td class="text-right"><a class="btn btn-xs btn-default" href="${galeria.boletos.url(b.codigo)}" target="_blank">${__("Ver boleto")}</a>
+				<button type="button" class="btn btn-xs btn-default" data-copiar="${esc(galeria.boletos.url(b.codigo))}">${__("Copiar enlace")}</button></td></tr>`
+			)
+			.join("")}
+		</tbody></table>`);
+	d.fields_dict.html.$wrapper.on("click", "[data-copiar]", (ev) => frappe.utils.copy_to_clipboard($(ev.currentTarget).attr("data-copiar")));
+	d.show();
+	galeria.boletos.aviso_correo(r.correos, r.hay_cuenta_de_correo);
 };
 
 galeria.eventos.confirmar = async function (evento, total, on_done) {

@@ -52,6 +52,11 @@ frappe.ui.form.on("Obra de Arte", {
 					__("Pago al artista: {0}", [p.estado_pago]),
 					galeria.artistas.COLORES_PAGO[p.estado_pago] || "gray"
 				);
+				if (p.estado_pago === "Por liquidar") {
+					frm.add_custom_button(__("Liquidar al artista"), () =>
+						galeria.artistas.liquidar(frm.doc.artista, recargar, [frm.doc.name])
+					).addClass("btn-primary");
+				}
 			});
 		}
 		if (estado === "Vendida" && frm.doc.factura) {
@@ -66,6 +71,11 @@ frappe.ui.form.on("Obra de Arte", {
 		}
 		if (estado !== "Vendida") {
 			frm.add_custom_button(__("Clientes interesados"), () => clientes_interesados(frm), __("Más"));
+		}
+		frm.add_custom_button(__("Imprimir ficha"), () => galeria.obras.imprimir("Obra de Arte", frm.doc.name, "Ficha de Obra"), __("Ficha y QR"));
+		if (frm.doc.codigo_publico) {
+			frm.add_custom_button(__("Abrir página pública"), () => window.open(galeria.obras.url_publica(frm.doc.codigo_publico), "_blank"), __("Ficha y QR"));
+			frm.add_custom_button(__("Copiar enlace"), () => frappe.utils.copy_to_clipboard(galeria.obras.url_publica(frm.doc.codigo_publico)), __("Ficha y QR"));
 		}
 		frm.add_custom_button(__("Venta de obras"), () => frappe.set_route("venta-obras"), __("Más"));
 		frm.add_custom_button(__("Ver en el catálogo"), () => frappe.set_route("catalogo-obras"), __("Más"));

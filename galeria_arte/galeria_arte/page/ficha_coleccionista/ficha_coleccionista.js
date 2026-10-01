@@ -39,6 +39,7 @@ class FichaColeccionista {
 			if (accion === "abonar") galeria.obras.abonar(id, null, recargar);
 			if (accion === "recibo") galeria.obras.imprimir("Reservacion de Obra", id, "Recibo de Reserva");
 			if (accion === "cliente") frappe.set_route("Form", "Customer", id);
+			if (accion === "liquidar") galeria.artistas.liquidar($el.attr("data-artista"), recargar, [id]);
 			if (accion === "cobrar-subasta") galeria.eventos.cobrar_subasta($el.attr("data-evento"), id, recargar);
 			if (accion === "subasta") galeria.eventos.resumen(id, recargar);
 		});
@@ -107,7 +108,10 @@ class FichaColeccionista {
 						obra(
 							o,
 							`<div class="small">${m(o.precio_vendido)} · ${frappe.datetime.str_to_user(o.fecha_venta)}</div>`,
-							btn("estado", o.factura, __("Estado de cuenta"))
+							btn("estado", o.factura, __("Estado de cuenta")) +
+								(o.por_liquidar
+									? `<button class="btn btn-xs btn-primary" data-accion="liquidar" data-id="${esc(o.name)}" data-artista="${esc(o.artista)}">${__("Liquidar al artista")}</button>`
+									: "")
 						)
 					)
 					.join("")

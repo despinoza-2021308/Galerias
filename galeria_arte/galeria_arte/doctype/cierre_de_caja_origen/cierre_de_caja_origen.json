@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "modo_pago",
+  "origen",
+  "num_pagos",
+  "monto",
+  "es_egreso"
+ ],
+ "fields": [
+  {
+   "fieldname": "modo_pago",
+   "fieldtype": "Link",
+   "label": "Forma de pago",
+   "options": "Mode of Payment",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "origen",
+   "fieldtype": "Data",
+   "label": "Origen",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "num_pagos",
+   "fieldtype": "Int",
+   "label": "Pagos",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "monto",
+   "fieldtype": "Currency",
+   "label": "Monto",
+   "in_list_view": 1,
+   "read_only": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "es_egreso",
+   "fieldtype": "Check",
+   "label": "Es egreso",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Galeria Arte",
+ "name": "Cierre de Caja Origen",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

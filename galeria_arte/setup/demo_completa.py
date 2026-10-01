@@ -119,7 +119,7 @@ def limpiar():
 		_borrar("Sales Invoice", nombre)
 	for nombre in compras:
 		_borrar("Purchase Invoice", nombre)
-	for doctype in ("Cierre de Caja", "Liquidacion a Artista", "Reservacion de Obra", "Evento", "Obra de Arte"):
+	for doctype in ("Boleto", "Cierre de Caja", "Liquidacion a Artista", "Reservacion de Obra", "Evento", "Obra de Arte"):
 		for nombre in frappe.get_all(doctype, pluck="name"):
 			_borrar(doctype, nombre)
 
@@ -146,7 +146,7 @@ def limpiar():
 	anio = getdate(nowdate()).year
 	frappe.db.sql(
 		"UPDATE `tabSeries` SET current = 0 WHERE name IN %(s)s",
-		{"s": (f"{serie}", "OBRA-", "EVT-", "RES-", "LIQ-", f"CIERRE-{anio}-")},
+		{"s": (f"{serie}", "OBRA-", "EVT-", "RES-", "LIQ-", "BOL-", f"CIERRE-{anio}-")},
 	)
 	frappe.db.commit()
 	print(
@@ -244,6 +244,11 @@ POPULARIDAD_EVENTO = {
 	"COM-003": 7, "POS-001": 4, "POS-002": 3,
 }
 HORAS = {9: 3, 10: 6, 11: 9, 12: 10, 13: 9, 14: 8, 15: 10, 16: 9, 17: 7, 18: 5, 19: 3}
+# Nombres para los asistentes de las cenas (cada boleto lleva el suyo).
+NOMBRES = ["Andrea", "Carlos", "Lucía", "Diego", "Valeria", "José", "Sofía", "Javier", "Paola", "Miguel", "Fernanda",
+	"Alejandro", "Camila", "Rodrigo", "Natalia", "Esteban", "Mariela", "Óscar", "Alejandra", "Raúl"]
+APELLIDOS = ["López", "García", "Morales", "Hernández", "Pérez", "Castillo", "Ramírez", "Cifuentes", "Barrios",
+	"Molina", "Ortiz", "Reyes", "Flores", "Juárez", "Méndez", "Rivas"]
 
 
 # ---------------------------------------------------------------------------
@@ -404,6 +409,13 @@ class Demo:
 
 		registrar_pagos(self.r[clave], pagos)
 
+	def cobrar_cuota(self, clave, modo, referencia=None):
+		"""Paga exactamente la próxima cuota (su monto real, con los centavos del plan)."""
+		from galeria_arte.api.facturacion import estado_factura
+
+		cuota = estado_factura(self.r[clave])["proxima"]
+		self.cobrar(clave, [self.pago(modo, cuota["monto"], referencia)])
+
 	def liquidar(self, artista, claves, pagar_con=None):
 		from galeria_arte.api.liquidaciones import crear_liquidacion
 
@@ -427,14 +439,14 @@ class Demo:
 		# Reserva que termina en venta a 6 cuotas
 		self.en(50, "12:00", lambda: self.reservar("R1", "Luis Fernando Arriola", 5000, TRANSFERENCIA, 30))
 		self.en(35, "17:00", lambda: self.vender_obra("R1", "Luis Fernando Arriola", [], plan=6))
-		self.en(6, "10:15", lambda: self.cobrar("R1", [self.pago(TRANSFERENCIA, 2900, "TRF-90211")]))
+		self.en(6, "10:15", lambda: self.cobrar_cuota("R1", TRANSFERENCIA, "TRF-90211"))
 
 		# Cuotas: 3 (al día, la próxima vence en 2 días), 12 (una vencida), 9 (primera vencida)
 		self.en(88, "13:00", lambda: self.vender_obra("E2", "Carmen Aguilar", [self.pago(EFECTIVO, 2960)], plan=3))
-		self.en(57, "11:00", lambda: self.cobrar("E2", [self.pago(EFECTIVO, 2000)]))
-		self.en(27, "11:20", lambda: self.cobrar("E2", [self.pago(TARJETA, 2000, "VOU-4012")]))
+		self.en(57, "11:00", lambda: self.cobrar_cuota("E2", EFECTIVO))
+		self.en(27, "11:20", lambda: self.cobrar_cuota("E2", TARJETA, "VOU-4012"))
 		self.en(85, "17:30", lambda: self.vender_obra("E3", "Gabriela Monterroso", [self.pago(TRANSFERENCIA, 9600, "TRF-71002")], plan=12))
-		self.en(54, "09:45", lambda: self.cobrar("E3", [self.pago(TRANSFERENCIA, 2000, "TRF-80410")]))
+		self.en(54, "09:45", lambda: self.cobrar_cuota("E3", TRANSFERENCIA, "TRF-80410"))
 		self.en(40, "15:30", lambda: self.vender_obra("A2", "Héctor Villatoro", [self.pago(CHEQUE, 4500, "CHQ-001245")], plan=9))
 
 		# Abonos libres: pagada, vencida con saldo y vigente
@@ -483,7 +495,21 @@ class Demo:
 		total = flt(precio * cantidad, 2)
 		modo = self.rnd.choices([EFECTIVO, TARJETA, TRANSFERENCIA], [30, 55, 15])[0]
 		cliente = self.rnd.choice(CLIENTES[:16])[0] if self.rnd.random() < 0.6 else None
-		vender_boletos(self.r[clave], cantidad, [self.pago(modo, total)], cliente=cliente)
+		asistentes = [{"nombre": cliente}] if cliente else []
+		while len(asistentes) < cantidad:
+			asistentes.append({"nombre": f"{self.rnd.choice(NOMBRES)} {self.rnd.choice(APELLIDOS)}"})
+		vender_boletos(self.r[clave], cantidad, [self.pago(modo, total)], cliente=cliente, asistentes=asistentes)
+
+	def llegaron(self, clave):
+		"""Cena pasada: casi todos los asistentes registraron su ingreso en la puerta."""
+		inicio = frappe.db.get_value("Evento", self.r[clave], "inicio")
+		for nombre in frappe.get_all("Boleto", filters={"evento": self.r[clave], "estado": "Válido"}, pluck="name"):
+			if self.rnd.random() < 0.92:
+				frappe.db.set_value("Boleto", nombre, {
+					"estado": "Usado",
+					"ingreso": inicio + timedelta(minutes=self.rnd.randint(-25, 50)),
+					"registrado_por": "Administrator",
+				}, update_modified=False)
 
 	def vender_cena(self, clave, lugares, desde, hasta):
 		"""Reparte los lugares vendidos en compras de 1 a 4 entre dos fechas."""
@@ -544,6 +570,7 @@ class Demo:
 			}))
 			self.vender_cena(clave, vendidos, creada - 1, max(dias + 1, 0))
 			if dias > 0:
+				self.en(dias, "23:00", lambda clave=clave: self.llegaron(clave), "check-in")
 				self.en(dias - 1, "09:00", lambda clave=clave: self.realizado(clave))
 				noches.add(dias)
 		noches.update({85, 26})  # inauguraciones de las exposiciones

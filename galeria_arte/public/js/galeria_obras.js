@@ -35,6 +35,31 @@ galeria.obras.imprimir = function (doctype, name, formato) {
 	);
 };
 
+// Página pública de la obra (la que abre el QR de su ficha).
+galeria.obras.url_publica = function (codigo) {
+	return `${frappe.urllib.get_base_url()}/obra?c=${encodeURIComponent(codigo)}`;
+};
+
+// Varias fichas en una hoja lista para imprimir.
+galeria.obras.imprimir_fichas = async function (obras) {
+	if (!obras || !obras.length) {
+		frappe.msgprint(__("No hay obras para imprimir."));
+		return;
+	}
+	// La ventana se abre antes de la llamada para que el navegador no la bloquee.
+	const ventana = window.open("", "_blank");
+	let html;
+	try {
+		html = await frappe.xcall("galeria_arte.api.fichas.html_fichas", { obras });
+	} catch (e) {
+		ventana && ventana.close();
+		return;
+	}
+	ventana.document.open();
+	ventana.document.write(html);
+	ventana.document.close();
+};
+
 function campo_modo_pago(modos) {
 	return {
 		fieldtype: "Select",
@@ -407,6 +432,19 @@ galeria.obras.venta_lista = function (r, al_cerrar) {
 					: ""
 			}
 		</div>`);
+	const listas = r.obras_por_liquidar || [];
+	if (listas.length) {
+		$(`<div class="text-center" style="margin-bottom: var(--margin-md)">
+			<div class="text-muted small" style="margin-bottom: 6px">${__("Pagada por completo: ya se le puede pagar al artista.")}</div>
+			<button type="button" class="btn btn-primary btn-sm">${__("Liquidar al artista")}</button></div>`)
+			.appendTo(d.fields_dict.html.$wrapper)
+			.on("click", "button", () => {
+				d.onhide = null;
+				d.hide();
+				const o = listas[0];
+				galeria.artistas.liquidar(o.artista, al_cerrar, listas.filter((x) => x.artista === o.artista).map((x) => x.obra));
+			});
+	}
 	if (al_cerrar) d.onhide = al_cerrar;
 	d.show();
 };

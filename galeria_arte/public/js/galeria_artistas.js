@@ -19,7 +19,8 @@ galeria.artistas.COLORES_PAGO = {
 galeria.artistas.COLORES_LIQUIDACION = { "Por pagar": "orange", Pagada: "green", Anulada: "gray" };
 
 // Elegir las obras listas de un artista y liquidarlas (pagando ahora o después).
-galeria.artistas.liquidar = async function (artista, on_done) {
+// solo_obras: si viene, solo esas obras quedan marcadas al abrir.
+galeria.artistas.liquidar = async function (artista, on_done, solo_obras = null) {
 	const [obras, opciones] = await Promise.all([
 		frappe.xcall(`${LIQ_API}.por_liquidar`, { artista }),
 		frappe.xcall("galeria_arte.api.facturacion.opciones_cobro"),
@@ -102,7 +103,9 @@ galeria.artistas.liquidar = async function (artista, on_done) {
 			<tbody>${obras
 				.map(
 					(o) => `<tr>
-					<td><input type="checkbox" data-obra="${esc(o.name)}" data-monto="${flt(o.monto_artista)}" checked aria-label="${esc(o.titulo)}"></td>
+					<td><input type="checkbox" data-obra="${esc(o.name)}" data-monto="${flt(o.monto_artista)}" ${
+						!solo_obras || solo_obras.includes(o.name) ? "checked" : ""
+					} aria-label="${esc(o.titulo)}"></td>
 					<td>${esc(o.titulo)}<div class="text-muted small">${esc(o.cliente_nombre || o.cliente || "")}</div></td>
 					<td>${esc(o.factura || "")}</td>
 					<td>${frappe.datetime.str_to_user(o.fecha_venta)}</td>
@@ -127,6 +130,35 @@ galeria.artistas.liquidar = async function (artista, on_done) {
 	$w.on("change", "input[data-obra]", total);
 	d.show();
 	total();
+};
+
+// Al terminar de cobrar una obra: avisa que ya se le puede pagar al artista.
+// obras: [{obra, titulo, artista, monto_artista}]
+galeria.artistas.ofrecer_liquidar = function (obras, on_done) {
+	if (!obras || !obras.length) return;
+	const m = galeria.pagos.moneda;
+	const esc = frappe.utils.escape_html;
+	const d = new frappe.ui.Dialog({
+		title: obras.length === 1 ? __("Obra pagada por completo") : __("Obras pagadas por completo"),
+		fields: [{ fieldtype: "HTML", fieldname: "html" }],
+	});
+	d.fields_dict.html.$wrapper.html(`
+		<p>${__("El cliente terminó de pagar. Ya se le puede pagar al artista:")}</p>
+		<table class="table table-sm gal-tabla" style="margin: 0">
+			<tbody>${obras
+				.map(
+					(o, i) => `<tr><td>${esc(o.titulo)}<span class="gal-sub">${esc(o.artista)}</span></td>
+					<td class="text-right">${__("Para el artista")}<span class="gal-sub"><b>${m(o.monto_artista)}</b></span></td>
+					<td class="text-right"><button type="button" class="btn btn-primary btn-sm" data-liquidar="${i}">${__("Liquidar al artista")}</button></td></tr>`
+				)
+				.join("")}</tbody>
+		</table>`);
+	d.fields_dict.html.$wrapper.on("click", "[data-liquidar]", (e) => {
+		const o = obras[cint($(e.currentTarget).attr("data-liquidar"))];
+		d.hide();
+		galeria.artistas.liquidar(o.artista, on_done, [o.obra]);
+	});
+	d.show();
 };
 
 galeria.artistas.liquidacion_lista = function (r) {

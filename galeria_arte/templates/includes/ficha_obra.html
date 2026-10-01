@@ -1,0 +1,35 @@
+{#- Ficha (cédula) de una obra con su QR. Se usa en el formato "Ficha de Obra"
+    y en la impresión de varias fichas desde el catálogo o una exposición. -#}
+{% macro estilos() %}
+<style>
+	.ficha-obra { width: 90mm; height: 60mm; box-sizing: border-box; border: 1px solid #222; padding: 6mm; display: flex;
+		gap: 5mm; font-family: "Helvetica Neue", Arial, sans-serif; color: #111; page-break-inside: avoid; break-inside: avoid; background: #fff; }
+	.ficha-textos { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+	.ficha-titulo { font-size: 15pt; font-weight: 700; line-height: 1.15; margin-bottom: 1.5mm; }
+	.ficha-artista { font-size: 11pt; margin-bottom: 3mm; }
+	.ficha-detalle { font-size: 9pt; color: #444; line-height: 1.4; }
+	.ficha-precio { font-size: 13pt; font-weight: 700; margin-top: auto; }
+	.ficha-galeria { font-size: 7pt; letter-spacing: 1.5px; text-transform: uppercase; color: #777; margin-top: 1mm; }
+	.ficha-qr { width: 28mm; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+	.ficha-qr img { width: 28mm; height: 28mm; }
+	.ficha-qr div { font-size: 7pt; color: #555; margin-top: 1mm; line-height: 1.2; }
+	.fichas-hoja { display: flex; flex-wrap: wrap; gap: 5mm; }
+</style>
+{% endmacro %}
+
+{% macro ficha(o) %}
+<div class="ficha-obra">
+	<div class="ficha-textos">
+		<div class="ficha-titulo">{{ o.titulo | e }}</div>
+		<div class="ficha-artista">{{ o.artista | e }}</div>
+		{% if o.tecnica or o.anio %}<div class="ficha-detalle">{{ ([o.tecnica, o.anio] | select | join(" · ")) | e }}</div>{% endif %}
+		{% if o.medidas %}<div class="ficha-detalle">{{ o.medidas | e }}</div>{% endif %}
+		<div class="ficha-precio">{{ o.precio | e }}</div>
+		<div class="ficha-galeria">{{ o.galeria | e }}</div>
+	</div>
+	<div class="ficha-qr">
+		<img src="{{ o.qr }}" alt="QR">
+		<div>Escanee para ver<br>más de la obra</div>
+	</div>
+</div>
+{% endmacro %}

@@ -49,6 +49,9 @@ frappe.ui.form.on("Evento", {
 				__("Más")
 			);
 		}
+		if (d.tipo === "Exposición" && (d.obras || []).length) {
+			frm.add_custom_button(__("Imprimir fichas de las obras"), () => galeria.obras.imprimir_fichas(d.obras.map((o) => o.obra)));
+		}
 		frm.add_custom_button(__("Ver en el calendario"), () => frappe.set_route("calendario-galeria"), __("Más"));
 	},
 

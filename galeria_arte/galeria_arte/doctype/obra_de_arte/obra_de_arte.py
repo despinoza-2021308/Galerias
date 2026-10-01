@@ -22,6 +22,7 @@ DEVUELTA = "Devuelta al artista"
 class ObradeArte(Document):
 	def validate(self):
 		self.company = self.company or get_config().company
+		self.codigo_publico = self.codigo_publico or frappe.generate_hash(length=12)
 		if flt(self.precio_venta) <= 0:
 			frappe.throw(_("El precio de venta debe ser mayor a cero."))
 		if flt(self.monto_artista) < 0:
@@ -35,7 +36,30 @@ class ObradeArte(Document):
 			)
 
 	def on_update(self):
+		self.publicar_imagenes()
 		self.sincronizar_articulo()
+
+	def publicar_imagenes(self):
+		"""Las fotos de la obra se muestran en su página pública: si se subieron
+		como privadas, se pasan a públicas y se actualiza su dirección."""
+		urls = [self.imagen] + [f.imagen for f in self.fotos]
+		privadas = [u for u in urls if u and u.startswith("/private/")]
+		cambios = {}
+		for url in privadas:
+			nombre = frappe.db.get_value("File", {"file_url": url, "is_private": 1}, "name")
+			if not nombre:
+				continue
+			archivo = frappe.get_doc("File", nombre)
+			archivo.is_private = 0
+			archivo.save(ignore_permissions=True)
+			cambios[url] = archivo.file_url
+		if not cambios:
+			return
+		if self.imagen in cambios:
+			self.db_set("imagen", cambios[self.imagen], update_modified=False)
+		for f in self.fotos:
+			if f.imagen in cambios:
+				f.db_set("imagen", cambios[f.imagen], update_modified=False)
 
 	def on_trash(self):
 		if self.factura:
