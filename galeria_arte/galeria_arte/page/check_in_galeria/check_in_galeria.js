@@ -60,7 +60,14 @@ class CheckIn {
 			$input.val("").trigger("focus");
 		};
 		this.$cuerpo.find(".ci-manual button").on("click", manual);
-		$input.on("keydown", (e) => e.key === "Enter" && manual());
+		// Solo Enter registra; el resto de teclas se escriben normal (un handler de
+		// jQuery que devuelve false bloquearía la escritura).
+		$input.on("keydown", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				manual();
+			}
+		});
 	}
 
 	async cargar_eventos(preferido) {
