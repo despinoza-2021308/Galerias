@@ -205,6 +205,20 @@ def _codigo(texto: str) -> str:
 	return texto
 
 
+def buscar_boleto(texto: str) -> str | None:
+	"""El boleto por su QR (código o dirección) o por el número impreso
+	(BOL-00160, bol-160 o solo 160), para cuando se escribe a mano en la puerta."""
+	codigo = _codigo(texto)
+	nombre = frappe.db.get_value("Boleto", {"codigo": codigo}, "name") if codigo else None
+	if nombre:
+		return nombre
+	numero = codigo.upper().replace("BOL-", "").replace("BOL", "").strip()
+	if numero.isdigit():
+		nombre = f"BOL-{int(numero):05d}"
+		return nombre if frappe.db.exists("Boleto", nombre) else None
+	return None
+
+
 @frappe.whitelist()
 def cenas_para_checkin() -> list:
 	frappe.has_permission("Boleto", "read", throw=True)
@@ -249,9 +263,9 @@ def estado_checkin(evento: str) -> dict:
 def registrar_ingreso(codigo: str, evento: str | None = None) -> dict:
 	"""Marca el boleto como Usado. Responde ok=False con el motivo si no puede entrar."""
 	frappe.has_permission("Boleto", "write", throw=True)
-	nombre = frappe.db.get_value("Boleto", {"codigo": _codigo(codigo)}, "name")
+	nombre = buscar_boleto(codigo)
 	if not nombre:
-		return {"ok": False, "motivo": _("Código no válido: este boleto no existe.")}
+		return {"ok": False, "motivo": _("No se encontró ningún boleto con ese código o número.")}
 	b = frappe.get_doc("Boleto", nombre)
 	info = {"boleto": b.name, "asistente": b.asistente, "evento": b.nombre_evento}
 	if evento and b.evento != evento:

@@ -41,7 +41,7 @@ class CheckIn {
 				<button type="button" class="btn btn-primary" data-camara>${__("Escanear con la cámara")}</button>
 			</div>
 			<div class="ci-manual">
-				<input type="text" class="form-control" placeholder="${__("O escriba / pegue el código del boleto")}">
+				<input type="text" class="form-control" placeholder="${__("O escriba el número del boleto (BOL-00160) o pegue su código")}">
 				<button type="button" class="btn btn-default">${__("Registrar")}</button>
 			</div>
 			<div class="ci-recientes"></div>
