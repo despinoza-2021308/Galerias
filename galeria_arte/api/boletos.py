@@ -40,6 +40,7 @@ def crear_boletos(ev, factura: str, comprador: str, asistentes: list) -> list:
 				"evento": ev.name,
 				"asistente": a["nombre"],
 				"correo": a.get("correo"),
+				"whatsapp": a.get("whatsapp"),
 				"comprador": comprador,
 				"factura": factura,
 				"estado": VALIDO,
@@ -190,6 +191,63 @@ def hay_cuenta_de_correo() -> bool:
 		"Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "awaiting_password", as_dict=True
 	)
 	return bool(cuenta and not cuenta.awaiting_password and not cint(frappe.db.get_default("suspend_email_queue")))
+
+
+# ---------------------------------------------------------------------------
+# WhatsApp (enlace wa.me con el mensaje listo; se envía desde el WhatsApp de quien vende)
+# ---------------------------------------------------------------------------
+
+
+def _mensaje_whatsapp(datos: list, para_comprador: bool, nombre: str | None) -> str:
+	b = datos[0]
+	saludo = f"Hola {nombre.split()[0]} 👋" if nombre else "Hola 👋"
+	encabezado = [
+		saludo,
+		"",
+		(f"Aquí están tus boletos para *{b.evento}*" if len(datos) > 1 else f"Aquí está tu boleto para *{b.evento}*"),
+		f"📅 {b.fecha}, {b.hora}",
+		f"📍 {b.lugar} · {b.galeria}",
+		"",
+	]
+	if len(datos) == 1 and not para_comprador:
+		cuerpo = ["Presenta este código QR en la entrada:", b.url]
+	else:
+		cuerpo = ["Cada asistente presenta su código QR en la entrada:"]
+		for x in datos:
+			cuerpo += ["", f"🎟️ {x.asistente}", x.url]
+	return "\n".join(encabezado + cuerpo)
+
+
+@frappe.whitelist()
+def whatsapp(boletos, numero: str | None = None, para_comprador: int = 0) -> dict:
+	"""Arma el enlace de WhatsApp con el mensaje del boleto (o de varios, para el
+	comprador) y registra que se abrió para enviarlo."""
+	from urllib.parse import quote
+
+	from galeria_arte.galeria_arte.doctype.boleto.boleto import normalizar_whatsapp
+
+	frappe.has_permission("Boleto", "write", throw=True)
+	docs = [frappe.get_doc("Boleto", b) for b in (_cargar(boletos) or []) if b]
+	docs = [b for b in docs if b.estado != ANULADO]
+	if not docs:
+		frappe.throw(_("No hay boletos válidos para enviar."))
+	para_comprador = int(para_comprador or 0)
+	if para_comprador:
+		nombre = frappe.db.get_value("Customer", docs[0].comprador, "customer_name") if docs[0].comprador else None
+		consumidor = frappe.db.get_single_value("Configuracion Galeria", "cliente_consumidor_final")
+		nombre = None if docs[0].comprador == consumidor else nombre
+	else:
+		nombre = docs[0].asistente
+	numero = normalizar_whatsapp(numero) or (None if para_comprador or len(docs) > 1 else docs[0].whatsapp)
+	texto = _mensaje_whatsapp([datos_boleto(b) for b in docs], bool(para_comprador), nombre)
+	ahora = now_datetime()
+	for b in docs:
+		frappe.db.set_value(
+			"Boleto", b.name, {"whatsapp_enviado": ahora, "whatsapp_por": frappe.session.user}, update_modified=False
+		)
+	# Sin número, WhatsApp deja elegir el contacto.
+	url = f"https://wa.me/{numero}?text={quote(texto)}" if numero else f"https://wa.me/?text={quote(texto)}"
+	return {"url": url, "numero": numero}
 
 
 # ---------------------------------------------------------------------------

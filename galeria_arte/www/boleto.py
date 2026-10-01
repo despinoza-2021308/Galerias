@@ -17,5 +17,13 @@ def get_context(context):
 		raise frappe.PageDoesNotExistError
 	context.b = datos_boleto(nombre)
 	context.title = f"{context.b.evento} — {context.b.asistente}"
+	context.metatags = {
+		"og:type": "website",
+		"og:title": f"Boleto · {context.b.evento}",
+		"og:description": f"{context.b.asistente} · {context.b.fecha}, {context.b.hora} · {context.b.lugar}",
+		"og:image": context.b.qr_url,
+		"og:url": context.b.url,
+		"description": f"{context.b.asistente} · {context.b.fecha}, {context.b.hora} · {context.b.lugar}",
+	}
 	context.no_breadcrumbs = 1
 	return context

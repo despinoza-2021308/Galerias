@@ -269,6 +269,10 @@ galeria.eventos.resumen = async function (evento, on_done) {
 	const d = new frappe.ui.Dialog({ title: e.nombre, size: "large", fields: [{ fieldtype: "HTML", fieldname: "html" }] });
 	d.fields_dict.html.$wrapper.html(cuerpo);
 	d.fields_dict.html.$wrapper.on("click", "[data-ev-accion]", (ev) => acciones[cint($(ev.currentTarget).attr("data-ev-accion"))].fn());
+	d.fields_dict.html.$wrapper.on("click", "[data-wa-boleto]", (ev) => {
+		ev.preventDefault();
+		galeria.boletos.whatsapp([$(ev.currentTarget).attr("data-wa-boleto")]);
+	});
 	d.fields_dict.html.$wrapper.on("click", "[data-lote-accion]", (ev) => {
 		const $b = $(ev.currentTarget);
 		const l = (e.lotes || []).find((x) => x.lote === $b.attr("data-lote"));
@@ -425,6 +429,12 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 				options: "Email",
 				description: __("Recibe todos los boletos."),
 			},
+			{
+				fieldtype: "Data",
+				fieldname: "whatsapp",
+				label: __("WhatsApp del comprador"),
+				description: __("Para enviarle todos los boletos por WhatsApp."),
+			},
 			{ fieldtype: "Section Break", label: __("Asistentes (cada boleto lleva su nombre)") },
 			{ fieldtype: "HTML", fieldname: "asistentes" },
 			{ fieldtype: "Section Break", label: __("Pago (los boletos se pagan al reservar)") },
@@ -447,6 +457,7 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 					pagos: editor.leer(),
 					asistentes,
 					correo: v.correo || null,
+					whatsapp: v.whatsapp || null,
 				});
 				d.hide();
 				galeria.boletos.vendidos(r, on_done);
@@ -464,6 +475,7 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 			.map((_, el) => ({
 				nombre: ($(el).find("[data-nombre]").val() || "").trim(),
 				correo: ($(el).find("[data-correo]").val() || "").trim() || null,
+				whatsapp: ($(el).find("[data-whatsapp]").val() || "").trim() || null,
 			}))
 			.get();
 	// Rehace las filas al cambiar la cantidad, conservando lo ya escrito.
@@ -472,11 +484,12 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 		const n = Math.max(0, Math.min(cint(d.get_value("cantidad")), e.disponibles));
 		const filas = [];
 		for (let i = 0; i < n; i++) {
-			const a = previos[i] || { nombre: i === 0 ? d.nombre_comprador || "" : "", correo: "" };
-			filas.push(`<div class="gal-asistente" style="display: grid; grid-template-columns: 28px minmax(0, 1.2fr) minmax(0, 1fr); gap: 6px; align-items: center; margin-bottom: 6px">
+			const a = previos[i] || { nombre: i === 0 ? d.nombre_comprador || "" : "", correo: "", whatsapp: "" };
+			filas.push(`<div class="gal-asistente" style="display: grid; grid-template-columns: 24px minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.8fr); gap: 6px; align-items: center; margin-bottom: 6px">
 				<span class="text-muted">${i + 1}.</span>
 				<input type="text" class="form-control" data-nombre placeholder="${__("Nombre del asistente")}" value="${esc(a.nombre || "")}">
 				<input type="email" class="form-control" data-correo placeholder="${__("Correo (opcional)")}" value="${esc(a.correo || "")}">
+				<input type="tel" class="form-control" data-whatsapp placeholder="${__("WhatsApp (opcional)")}" value="${esc(a.whatsapp || "")}">
 			</div>`);
 		}
 		$asistentes().html(filas.join("") || `<div class="text-muted">${__("Indique cuántos lugares.")}</div>`);
@@ -485,10 +498,11 @@ galeria.eventos.vender_boletos = async function (evento, on_done) {
 		const cliente = d.get_value("cliente");
 		d.nombre_comprador = "";
 		if (cliente && cliente !== datos.cliente_defecto) {
-			const r = await frappe.db.get_value("Customer", cliente, ["customer_name", "email_id"]);
+			const r = await frappe.db.get_value("Customer", cliente, ["customer_name", "email_id", "mobile_no"]);
 			const c = r.message || {};
 			d.nombre_comprador = c.customer_name || "";
 			if (c.email_id && !d.get_value("correo")) d.set_value("correo", c.email_id);
+			if (c.mobile_no && !d.get_value("whatsapp")) d.set_value("whatsapp", c.mobile_no);
 			const primero = $asistentes().find("[data-nombre]").first();
 			if (primero.length && !primero.val()) primero.val(d.nombre_comprador);
 		}
@@ -543,10 +557,16 @@ galeria.boletos.html_lista = function (e) {
 				(b) => `<tr><td>${esc(b.asistente)}<span class="gal-sub">${esc(b.name)}${b.correo ? " · " + esc(b.correo) : ""}</span></td>
 				<td><span class="indicator-pill ${colores[b.estado] || "gray"}">${etiquetas[b.estado] || esc(b.estado)}</span></td>
 				<td><a href="/app/sales-invoice/${encodeURIComponent(b.factura || "")}">${esc(b.factura || "")}</a></td>
-				<td class="text-right"><a href="${galeria.boletos.url(b.codigo)}" target="_blank">${__("Ver")}</a></td></tr>`
+				<td class="text-right" style="white-space: nowrap">${
+					b.estado === "Válido"
+						? `<a href="#" data-wa-boleto="${esc(b.name)}" title="${__("Enviar por WhatsApp")}">WhatsApp</a>${b.whatsapp_enviado ? " ✓" : ""} · `
+						: ""
+				}<a href="${galeria.boletos.url(b.codigo)}" target="_blank">${__("Ver")}</a></td></tr>`
 			)
 			.join("")}</tbody></table></div>`;
 };
+
+galeria.boletos.ICONO_WA = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="vertical-align: -2px"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1.1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.7-.4z"/></svg>`;
 
 galeria.boletos.url = function (codigo) {
 	return `${frappe.urllib.get_base_url()}/boleto?c=${encodeURIComponent(codigo)}`;
@@ -561,6 +581,22 @@ galeria.boletos.imprimir = async function (boletos) {
 		ventana.document.open();
 		ventana.document.write(html);
 		ventana.document.close();
+	} catch (e) {
+		ventana && ventana.close();
+	}
+};
+
+// Abre WhatsApp con el mensaje listo (la ventana se abre antes de la llamada
+// para que el navegador no la bloquee). Sin número, WhatsApp deja elegir el contacto.
+galeria.boletos.whatsapp = async function (boletos, numero = null, para_comprador = false) {
+	const ventana = window.open("", "_blank");
+	try {
+		const r = await frappe.xcall("galeria_arte.api.boletos.whatsapp", {
+			boletos,
+			numero,
+			para_comprador: para_comprador ? 1 : 0,
+		});
+		ventana.location.href = r.url;
 	} catch (e) {
 		ventana && ventana.close();
 	}
@@ -604,7 +640,7 @@ galeria.boletos.vendidos = async function (r, on_done) {
 	const lista = await frappe.xcall("frappe.client.get_list", {
 		doctype: "Boleto",
 		filters: { name: ["in", r.boletos] },
-		fields: ["name", "asistente", "codigo", "correo"],
+		fields: ["name", "asistente", "codigo", "correo", "whatsapp"],
 		order_by: "creation asc",
 		limit_page_length: 100,
 	});
@@ -624,16 +660,25 @@ galeria.boletos.vendidos = async function (r, on_done) {
 			<span>${__("Factura")}: <a href="/app/sales-invoice/${encodeURIComponent(r.factura)}">${esc(r.factura)}</a></span>
 			<span>${__("{0} de {1} lugares vendidos", [r.lugares_vendidos, r.cupo])}</span>
 		</div>
+		<div style="margin-bottom: var(--margin-sm)">
+			<button type="button" class="btn btn-sm btn-success" data-wa-comprador>${galeria.boletos.ICONO_WA} ${__("Enviar todos al comprador por WhatsApp")}</button>
+		</div>
 		<table class="table gal-tabla" style="margin: 0"><tbody>
 		${lista
 			.map(
-				(b) => `<tr><td>${esc(b.asistente)}<span class="gal-sub">${esc(b.name)}${b.correo ? " · " + esc(b.correo) : ""}</span></td>
-				<td class="text-right"><a class="btn btn-xs btn-default" href="${galeria.boletos.url(b.codigo)}" target="_blank">${__("Ver boleto")}</a>
+				(b) => `<tr><td>${esc(b.asistente)}<span class="gal-sub">${esc(b.name)}${b.correo ? " · " + esc(b.correo) : ""}${
+					b.whatsapp ? " · +" + esc(b.whatsapp) : ""
+				}</span></td>
+				<td class="text-right" style="white-space: nowrap">
+				<button type="button" class="btn btn-xs btn-default" data-wa="${esc(b.name)}">${galeria.boletos.ICONO_WA} WhatsApp</button>
+				<a class="btn btn-xs btn-default" href="${galeria.boletos.url(b.codigo)}" target="_blank">${__("Ver boleto")}</a>
 				<button type="button" class="btn btn-xs btn-default" data-copiar="${esc(galeria.boletos.url(b.codigo))}">${__("Copiar enlace")}</button></td></tr>`
 			)
 			.join("")}
 		</tbody></table>`);
 	d.fields_dict.html.$wrapper.on("click", "[data-copiar]", (ev) => frappe.utils.copy_to_clipboard($(ev.currentTarget).attr("data-copiar")));
+	d.fields_dict.html.$wrapper.on("click", "[data-wa]", (ev) => galeria.boletos.whatsapp([$(ev.currentTarget).attr("data-wa")]));
+	d.fields_dict.html.$wrapper.on("click", "[data-wa-comprador]", () => galeria.boletos.whatsapp(r.boletos, r.whatsapp_comprador, true));
 	d.show();
 	galeria.boletos.aviso_correo(r.correos, r.hay_cuenta_de_correo);
 };

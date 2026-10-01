@@ -14,3 +14,15 @@ class Boleto(Document):
 		self.codigo = self.codigo or frappe.generate_hash(length=16)
 		self.asistente = (self.asistente or "").strip()
 		self.correo = (self.correo or "").strip() or None
+		self.whatsapp = normalizar_whatsapp(self.whatsapp)
+
+
+def normalizar_whatsapp(numero: str | None) -> str | None:
+	"""Deja solo los dígitos (como los pide wa.me). Un número de 8 dígitos es de
+	Guatemala: se le antepone 502. Si ya trae código de país, se respeta."""
+	digitos = "".join(c for c in (numero or "") if c.isdigit())
+	if digitos.startswith("00"):
+		digitos = digitos[2:]
+	if len(digitos) == 8:
+		digitos = "502" + digitos
+	return digitos or None

@@ -9,6 +9,7 @@ frappe.ui.form.on("Boleto", {
 		frm.add_custom_button(__("Ver boleto"), () => window.open(galeria.boletos.url(frm.doc.codigo), "_blank"));
 		frm.add_custom_button(__("Imprimir"), () => galeria.boletos.imprimir([frm.doc.name]));
 		if (frm.doc.estado === "Válido") {
+			frm.add_custom_button(__("Enviar por WhatsApp"), () => galeria.boletos.whatsapp([frm.doc.name], frm.doc.whatsapp));
 			frm.add_custom_button(__("Enviar por correo"), () => galeria.boletos.enviar([frm.doc.name], frm.doc.correo), __("Más"));
 		}
 	},

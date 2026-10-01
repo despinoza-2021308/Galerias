@@ -123,10 +123,12 @@ def vender_boletos(
 	cliente: str | None = None,
 	asistentes=None,
 	correo: str | None = None,
+	whatsapp: str | None = None,
 ) -> dict:
-	"""asistentes: [{nombre, correo?}], uno por lugar (cada uno recibe su boleto con QR).
-	correo: del comprador, recibe todos los boletos."""
+	"""asistentes: [{nombre, correo?, whatsapp?}], uno por lugar (cada uno recibe su boleto con QR).
+	correo / whatsapp: del comprador, recibe todos los boletos."""
 	from galeria_arte.api.boletos import crear_boletos, enviar_correos, hay_cuenta_de_correo
+	from galeria_arte.galeria_arte.doctype.boleto.boleto import normalizar_whatsapp
 
 	ev = _evento(evento)
 	if ev.tipo != CENA:
@@ -143,7 +145,11 @@ def vender_boletos(
 		frappe.throw(_("Solo quedan {0} lugares.").format(disponibles))
 
 	asistentes = [
-		{"nombre": (a.get("nombre") or "").strip(), "correo": (a.get("correo") or "").strip() or None}
+		{
+			"nombre": (a.get("nombre") or "").strip(),
+			"correo": (a.get("correo") or "").strip() or None,
+			"whatsapp": (a.get("whatsapp") or "").strip() or None,
+		}
 		for a in (_cargar(asistentes) or [])
 	]
 	if asistentes and len(asistentes) != cantidad:
@@ -198,6 +204,7 @@ def vender_boletos(
 			"boletos": boletos,
 			"correos": correos,
 			"hay_cuenta_de_correo": hay_cuenta_de_correo(),
+			"whatsapp_comprador": normalizar_whatsapp(whatsapp),
 		}
 	)
 	return estado
@@ -687,7 +694,10 @@ def resumen(evento: str) -> dict:
 				"boletos": frappe.get_all(
 					"Boleto",
 					filters={"evento": ev.name},
-					fields=["name", "asistente", "estado", "factura", "correo", "correo_enviado", "codigo", "ingreso"],
+					fields=[
+						"name", "asistente", "estado", "factura", "correo", "correo_enviado", "codigo", "ingreso",
+						"whatsapp", "whatsapp_enviado",
+					],
 					order_by="creation asc",
 				),
 			}
